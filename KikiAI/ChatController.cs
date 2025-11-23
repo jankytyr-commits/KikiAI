@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -20,6 +21,22 @@ public class ChatController : ControllerBase
     public async Task<IActionResult> GetHistory()
     {
         var session = await _chatService.GetCurrentSessionAsync();
+        return Ok(session);
+    }
+
+    [HttpGet("sessions")]
+    public async Task<IActionResult> GetAllSessions()
+    {
+        var summaries = await _chatService.GetAllSessionsAsync();
+        return Ok(summaries);
+    }
+
+    [HttpGet("session/{id}")]
+    public async Task<IActionResult> GetSession(string id)
+    {
+        var session = await _chatService.LoadSessionAsync(id);
+        if (session == null)
+            return NotFound();
         return Ok(session);
     }
 
@@ -46,18 +63,10 @@ public class ChatController : ControllerBase
             if (session == null) session = await _chatService.CreateNewSessionAsync();
 
             // Update session messages
-            // We assume request.Messages contains the full history sent by client, 
-            // OR we append. The client usually sends full history. 
-            // Let's trust the client's view for now, but append the new response.
-            // Actually, to be safe and consistent, let's take the client's messages 
-            // (which includes the new user message) and append the bot response.
             var updatedMessages = request.Messages.ToList();
             updatedMessages.Add(new Message("assistant", response));
             
             session.Messages = updatedMessages;
-            // We could update tokens here if we tracked them per message, 
-            // but for now we just save the messages.
-            
             await _chatService.SaveSessionAsync(session);
 
             return Ok(new { success = true, response, sessionId = session.Id });

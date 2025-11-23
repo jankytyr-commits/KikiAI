@@ -5,301 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KikiAI Chat</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: #0a0a0a;
-            color: #e0e0e0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        #menuBar {
-            background: #1a1a1a;
-            padding: 0.5rem 1rem;
-            display: flex;
-            gap: 0.5rem;
-            border-bottom: 1px solid #333;
-        }
-
-        .menuBtn {
-            padding: 0.5rem 1rem;
-            background: #2c2c2c;
-            border: none;
-            border-radius: 4px;
-            color: #e0e0e0;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .menuBtn:hover {
-            background: #3c3c3c;
-        }
-
-        #modelSelector {
-            background: #151515;
-            padding: 0.75rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            border-bottom: 1px solid #333;
-        }
-
-        .modelBtn {
-            min-width: 160px;
-            max-width: 200px;
-            flex: 0 1 auto;
-            padding: 0.6rem 0.8rem;
-            background: #2c2c2c;
-            border: 2px solid #444;
-            border-radius: 6px;
-            color: #e0e0e0;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-        }
-
-        .modelBtn:hover {
-            border-color: #4fc3f7;
-            background: #333;
-        }
-
-        .modelBtn.active {
-            border-color: #4fc3f7;
-            background: #1a3a4a;
-            box-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
-        }
-
-        .modelBtn.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            border-color: #666;
-        }
-
-        .modelName {
-            font-weight: bold;
-            font-size: 0.9rem;
-            margin-bottom: 0.4rem;
-        }
-
-        .modelStats {
-            font-size: 0.8rem;
-            color: #aaa;
-        }
-
-        .tokenUsage {
-            color: #4fc3f7;
-        }
-
-        #mainContent {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        #chatArea {
-            flex: 3;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid #333;
-        }
-
-        #chat {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-
-        .msg {
-            margin: 0.5rem 0;
-            padding: 0.5rem;
-            border-radius: 4px;
-            background: #1a1a1a;
-        }
-
-        .user {
-            border-left: 3px solid #4fc3f7;
-        }
-
-        .bot {
-            border-left: 3px solid #a5d6a7;
-        }
-
-        .msgHeader {
-            font-size: 0.8rem;
-            color: #888;
-            margin-bottom: 0.25rem;
-        }
-
-        .msgContent {
-            color: #e0e0e0;
-            line-height: 1.6;
-        }
-
-        .msgContent h1,
-        .msgContent h2,
-        .msgContent h3 {
-            margin-top: 0.8rem;
-            margin-bottom: 0.4rem;
-            color: #4fc3f7;
-        }
-
-        .msgContent ul {
-            margin: 0.5rem 0;
-            padding-left: 1.5rem;
-        }
-
-        .msgContent li {
-            margin: 0.3rem 0;
-        }
-
-        .msgContent pre {
-            background: #1a1a1a;
-            padding: 0.8rem;
-            border-radius: 4px;
-            overflow-x: auto;
-            margin: 0.5rem 0;
-            position: relative;
-        }
-
-        .msgContent code {
-            background: #2c2c2c;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-family: monospace;
-        }
-
-        .copyBtn {
-            background: #4fc3f7;
-            color: #000;
-            border: none;
-            padding: 0.3rem 0.6rem;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: background 0.2s;
-            opacity: 0.8;
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-        }
-
-        .copyBtn:hover {
-            background: #6fd3ff;
-            opacity: 1;
-        }
-
-        .msgContent a {
-            color: #4fc3f7;
-            text-decoration: underline;
-        }
-
-        #inputArea {
-            display: flex;
-            padding: 1rem;
-            background: #1e1e1e;
-            border-top: 1px solid #333;
-            gap: 0.5rem;
-            align-items: flex-end;
-        }
-
-        #input {
-            flex: 1;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 4px;
-            background: #2c2c2c;
-            color: #e0e0e0;
-            font-size: 1rem;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 70px;
-            max-height: 200px;
-        }
-
-        #send {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 4px;
-            background: #4fc3f7;
-            color: #000;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-            height: fit-content;
-        }
-
-        #send:hover {
-            background: #6fd3ff;
-        }
-
-        #sidebar {
-            flex: 1;
-            background: #111;
-            padding: 1rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #notifications {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .note {
-            padding: 0.8rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            word-wrap: break-word;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .note.success {
-            background: #1b5e20;
-            color: #e8f5e9;
-            border-left: 4px solid #4caf50;
-        }
-
-        .note.info {
-            background: #0d47a1;
-            color: #e3f2fd;
-            border-left: 4px solid #2196f3;
-        }
-
-        .note.warn {
-            background: #f57f17;
-            color: #fff3e0;
-            border-left: 4px solid #ff9800;
-        }
-
-        .note.error {
-            background: #b71c1c;
-            color: #ffebee;
-            border-left: 4px solid #f44336;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(5px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -351,6 +57,8 @@
             </div>
         </div>
         <div id="sidebar">
+            <h3>Chats</h3>
+            <ul id="sessions"></ul>
             <h3>Notifications</h3>
             <div id="notifications"></div>
         </div>
@@ -396,9 +104,6 @@
                         chatDiv.scrollTop = chatDiv.scrollHeight;
                         addNotification('Info', 'Historie načtena.');
                     }
-                } else {
-                    // If no history (e.g. first run), start new chat silently or just wait
-                    // Actually, backend creates new if none exists, so this should return a session.
                 }
             } catch (e) {
                 console.error(e);
@@ -419,6 +124,7 @@
                         lastUserMessage = '';
                         updateAllTokenDisplays();
                         addNotification('Info', 'Nový chat zahájen.');
+                        loadSessions();
                     }
                 } catch (e) {
                     addNotification('Error', 'Chyba při vytváření chatu.');
@@ -507,51 +213,29 @@
                 placeholders.push({ content, type });
                 return `%%%LINKPH${placeholders.length - 1}%%%`;
             };
-            // Markdown links
             text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, title, url) => addPlaceholder({ title, url }, 'mdlink'));
-            // Emails
             text = text.replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, m => addPlaceholder(m, 'email'));
-            // URLs with protocol
             text = text.replace(/(https?:\/\/[^\s<>"]+)/g, m => addPlaceholder(m, 'url'));
-            // www URLs
             text = text.replace(/(^|[\s(])(www\.[^\s<>"]+)/g, (m, prefix, u) => prefix + addPlaceholder(u, 'www'));
-            // Escape HTML
             let html = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            // Code blocks
             html = html.replace(/```([\s\S]*?)```/g, '<pre><button class="copyBtn" onclick="copyToClipboard(this.nextElementSibling.textContent)">Kopírovat</button><code>$1</code></pre>');
-            // Inline code
             html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-            // Bold & Italic
             html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
             html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
             html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
             html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
-            // Headings
             html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
             html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
             html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-            // Lists
             html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
             html = html.replace(/(\<li\>.*\<\/li\>)/s, '<ul>$1</ul>');
-            // Restore placeholders with copy buttons for links
             html = html.replace(/%%%LINKPH(\d+)%%%/g, (m, i) => {
                 const item = placeholders[parseInt(i)];
                 if (!item) return m;
-                if (item.type === 'mdlink') {
-                    const href = item.content.url;
-                    const title = item.content.title;
-                    return `<a href="${href}" target="_blank">${title}</a> <button class="copyBtn" onclick="copyToClipboard('${href}')">📋</button>`;
-                }
-                if (item.type === 'email') {
-                    const addr = item.content;
-                    return `<a href="mailto:${addr}">${addr}</a> <button class="copyBtn" onclick="copyToClipboard('${addr}')">📋</button>`;
-                }
-                if (item.type === 'url') {
-                    const href = item.content;
-                    return `<a href="${href}" target="_blank">${href}</a> <button class="copyBtn" onclick="copyToClipboard('${href}')">📋</button>`;
-                }
-                if (item.type === 'www') {
-                    const href = 'http://' + item.content;
+                if (item.type === 'mdlink') return `<a href="${item.content.url}" target="_blank">${item.content.title}</a> <button class="copyBtn" onclick="copyToClipboard('${item.content.url}')">📋</button>`;
+                if (item.type === 'email') return `<a href="mailto:${item.content}">${item.content}</a> <button class="copyBtn" onclick="copyToClipboard('${item.content}')">📋</button>`;
+                if (item.type === 'url' || item.type === 'www') {
+                    const href = item.type === 'www' ? 'http://' + item.content : item.content;
                     return `<a href="${href}" target="_blank">${item.content}</a> <button class="copyBtn" onclick="copyToClipboard('${href}')">📋</button>`;
                 }
                 return m;
@@ -579,7 +263,7 @@
             const el = document.createElement('div');
             el.className = 'note ' + type.toLowerCase();
             const time = new Date().toLocaleTimeString();
-            el.innerHTML = `<strong>${type}</strong> <span style="font-size:0.8em;opacity:0.7">(${time})</span><br/>${msg}`;
+            el.innerHTML = `<strong>${type}</strong> <span style="font-size:0.8em;opacity:0.7">(${time})</span><br />${msg}`;
             notificationsDiv.insertBefore(el, notificationsDiv.firstChild);
         }
 
@@ -620,9 +304,11 @@
                     updateAllTokenDisplays();
                     if (currentProvider === 'claude-haiku') await loadClaudeUsage();
                     addNotification('Success', `Odpověď přijata. Celkem: ${totalTokens.toLocaleString()} tokenů.`);
+                    loadSessions(); // Refresh sessions list after message
                 } else {
                     addNotification('Error', data.error);
-                    if (/(429|TooManyRequests|Quota|403)/.test(data.error)) disableProvider(currentProvider, 'Quota Exceeded');
+                    if (/(429|TooManyRequests|Quota|403)/.test(data.error))
+                        disableProvider(currentProvider, 'Quota Exceeded');
                 }
             } catch (e) {
                 addNotification('Error', 'Network Error: ' + e.message);
@@ -648,7 +334,6 @@
                 e.preventDefault();
                 sendMessage();
             } else if (e.key === 'Enter' && e.ctrlKey) {
-                // Insert newline at cursor position
                 const start = input.selectionStart;
                 const end = input.selectionEnd;
                 const value = input.value;
@@ -660,6 +345,48 @@
 
         loadClaudeUsage();
         loadHistory();
+        loadSessions();
+
+        async function loadSessions() {
+            try {
+                const r = await fetch('/api/chat/sessions');
+                if (r.ok) {
+                    const list = await r.json();
+                    const ul = document.getElementById('sessions');
+                    ul.innerHTML = '';
+                    list.forEach(s => {
+                        const li = document.createElement('li');
+                        li.textContent = new Date(s.createdAt).toLocaleString();
+                        li.title = s.id;
+                        if (s.id === currentSessionId) li.classList.add('active');
+                        li.onclick = () => loadSession(s.id);
+                        ul.appendChild(li);
+                    });
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadSession(id) {
+            try {
+                const r = await fetch(`/api/chat/session/${id}`);
+                if (r.ok) {
+                    const session = await r.json();
+                    currentSessionId = session.id;
+                    conversationHistory = session.messages || [];
+                    chatDiv.innerHTML = '';
+                    totalTokens = 0;
+                    conversationHistory.forEach(msg => {
+                        const tokens = estimateTokens(msg.content);
+                        totalTokens += tokens;
+                        addMessage(msg.content, msg.role === 'assistant' ? 'bot' : 'user', tokens);
+                    });
+                    updateAllTokenDisplays();
+                    chatDiv.scrollTop = chatDiv.scrollHeight;
+                    addNotification('Info', 'Chat načten.');
+                    loadSessions();
+                }
+            } catch (e) { console.error(e); }
+        }
     </script>
 </body>
 

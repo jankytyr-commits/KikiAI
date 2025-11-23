@@ -14,6 +14,14 @@ public class ChatSession
     public Dictionary<string, bool> DisabledProviders { get; set; } = new();
 }
 
+public class ChatSessionSummary
+{
+    public string Id { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public string FirstMessagePreview { get; set; }
+    public int MessageCount { get; set; }
+}
+
 public class ChatService
 {
     private readonly string _chatsDir;
@@ -60,5 +68,36 @@ public class ChatService
         await File.WriteAllTextAsync(path, json);
         // Ensure it's marked as current
         await File.WriteAllTextAsync(_currentSessionFile, session.Id);
+    }
+
+    public async Task<List<ChatSessionSummary>> GetAllSessionsAsync()
+    {
+        var summaries = new List<ChatSessionSummary>();
+        var chatFiles = Directory.GetFiles(_chatsDir, "chat_*.json");
+
+        foreach (var file in chatFiles)
+        {
+            try
+            {
+                var json = await File.ReadAllTextAsync(file);
+                var session = JsonSerializer.Deserialize<ChatSession>(json);
+                if (session != null)
+                {
+                    summaries.Add(new ChatSessionSummary
+                    {
+                        Id = session.Id,
+                        CreatedAt = session.CreatedAt,
+                        FirstMessagePreview = session.Messages.FirstOrDefault()?.Content ?? "No messages",
+                        MessageCount = session.Messages.Count
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading session from {file}: {ex.Message}");
+            }
+        }
+
+        return summaries.OrderByDescending(s => s.CreatedAt).ToList();
     }
 }
