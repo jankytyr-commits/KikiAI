@@ -1,0 +1,6 @@
+@KikiAI_HostAddress = http://localhost:5068
+
+GET {{KikiAI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
