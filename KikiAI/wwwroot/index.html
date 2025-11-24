@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KikiAI Chat</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style-inline-buttons.css">
 </head>
 
 <body>
@@ -14,44 +15,108 @@
         <button class="menuBtn" onclick="startNewChat()">➕ Nový chat</button>
         <button class="menuBtn" onclick="exportChat()">💾 Exportovat chat</button>
     </div>
+
     <div id="modelSelector">
-        <button class="modelBtn active" data-provider="gemini" onclick="selectModel('gemini')">
-            <div class="modelName">Gemini 2.0 Flash</div>
-            <div class="modelStats"><span class="tokenUsage">0</span> / 1,000,000</div>
-        </button>
-        <button class="modelBtn" data-provider="gemini-2.5" onclick="selectModel('gemini-2.5')">
-            <div class="modelName">Gemini 2.5 Flash</div>
-            <div class="modelStats"><span class="tokenUsage">0</span> / 1,000,000</div>
-        </button>
-        <button class="modelBtn disabled" data-provider="openai" disabled>
-            <div class="modelName">OpenAI GPT-4o</div>
-            <div class="modelStats">Quota Exceeded</div>
-        </button>
-        <button class="modelBtn" data-provider="openai-test" onclick="selectModel('openai-test')">
-            <div class="modelName">GPT-4o-mini</div>
-            <div class="modelStats"><span class="tokenUsage">0</span> / 128,000</div>
-        </button>
-        <button class="modelBtn disabled" data-provider="claude" disabled>
-            <div class="modelName">Claude 3.5 Sonnet</div>
-            <div class="modelStats">Pro Only</div>
-        </button>
-        <button class="modelBtn" data-provider="claude-haiku" onclick="selectModel('claude-haiku')">
-            <div class="modelName">Claude 3.5 Haiku</div>
-            <div class="modelStats"><span class="tokenUsage">$0.00</span> / $5.00</div>
-        </button>
-        <button class="modelBtn" data-provider="mistral" onclick="selectModel('mistral')">
-            <div class="modelName">Mistral Small</div>
-            <div class="modelStats"><span class="tokenUsage">0</span> / 32,000</div>
-        </button>
-        <button class="modelBtn" data-provider="mistral-large" onclick="selectModel('mistral-large')">
-            <div class="modelName">Mistral Large</div>
-            <div class="modelStats"><span class="tokenUsage">0</span> / 128,000</div>
-        </button>
+        <div class="modelItem">
+            <button class="modelBtn active" data-provider="gemini" onclick="selectModel('gemini')">
+                <div class="modelName">Gemini 2.0 Flash</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 1,000,000</div>
+            </button>
+            <button class="modelSettingsBtn" onclick="openModelSettings('gemini')"
+                title="Nastavení API klíčů">⚙️</button>
+        </div>
+        <div class="modelItem">
+            <button class="modelBtn" data-provider="gemini-2.5" onclick="selectModel('gemini-2.5')">
+                <div class="modelName">Gemini 2.5 Flash</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 1,000,000</div>
+            </button>
+            <button class="modelSettingsBtn" onclick="openModelSettings('gemini-2.5')"
+                title="Nastavení API klíčů">⚙️</button>
+        </div>
+        <div class="modelItem">
+            <button class="modelBtn" data-provider="gemini-1.5-pro" onclick="selectModel('gemini-1.5-pro')">
+                <div class="modelName">Gemini 1.5 Pro</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 2,000,000</div>
+            </button>
+            <button class="modelSettingsBtn" onclick="openModelSettings('gemini-1.5-pro')"
+                title="Nastavení API klíčů">⚙️</button>
+        </div>
+        <div class="modelItem">
+            <button class="modelBtn" data-provider="gemini-1.5-flash" onclick="selectModel('gemini-1.5-flash')">
+                <div class="modelName">Gemini 1.5 Flash</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 1,000,000</div>
+            </button>
+            <button class="modelSettingsBtn" onclick="openModelSettings('gemini-1.5-flash')"
+                title="Nastavení API klíčů">⚙️</button>
+        </div>
+        <div class="modelItem">
+            <button class="modelBtn disabled" data-provider="openai" disabled>
+                <div class="modelName">OpenAI GPT-4o</div>
+                <div class="modelStats">Quota Exceeded</div>
+            </button>
+            <button class="modelSettingsBtn" onclick="openModelSettings('openai')"
+                title="Nastavení API klíčů">⚙️</button>
+        </div>
+        <div class="modelItem">
+            <button class="modelBtn" data-provider="openai-test" onclick="selectModel('openai-test')">
+                <div class="modelName">GPT-4o-mini</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 128,000</div>
+            </button>
+            <button class="modelSettingsBtn" onclick="openModelSettings('openai-test')"
+                title="Nastavení API klíčů">⚙️</button>
+        </div>
+        <div class="modelItem">
+            <button class="modelBtn" data-provider="claude" onclick="selectModel('claude')">
+                <div class="modelName">Claude 3 Haiku</div>
+                <div class="modelStats"><span class="tokenUsage">$0.00</span> / $0.25</div>
+            </button>
+            <button class="modelSettingsBtn" onclick="openModelSettings('claude')"
+                title="Nastavení API klíčů">⚙️</button>
+        </div>
+        <div class="modelItem">
+            <button class="modelBtn" data-provider="claude-haiku" onclick="selectModel('claude-haiku')">
+                <div class="modelName">Claude 3.5 Haiku</div>
+                <div class="modelStats"><span class="tokenUsage">$0.00</span> / $1.00</div>
+            </button>
+            <button class="modelSettingsBtn" onclick="openModelSettings('claude-haiku')"
+                title="Nastavení API klíčů">⚙️</button>
+        </div>
+        <div class="modelItem">
+            <button class="modelBtn" data-provider="mistral" onclick="selectModel('mistral')">
+                <div class="modelName">Mistral Small</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 32,000</div>
+            </button>
+            <button class="modelSettingsBtn" onclick="openModelSettings('mistral')"
+                title="Nastavení API klíčů">⚙️</button>
+        </div>
+        <div class="modelItem">
+            <button class="modelBtn" data-provider="mistral-large" onclick="selectModel('mistral-large')">
+                <div class="modelName">Mistral Large</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 128,000</div>
+            </button>
+            <button class="modelSettingsBtn" onclick="openModelSettings('mistral-large')"
+                title="Nastavení API klíčů">⚙️</button>
+        </div>
     </div>
+
     <div id="mainContent">
         <div id="chatArea">
             <div id="chat"></div>
             <div id="inputArea">
+                <div class="inputControls">
+                    <button id="searchToggle" class="iconBtn" onclick="toggleSearch()"
+                        title="Hledat na webu (Tavily)">🌐</button>
+                    <button id="imageUpload" class="iconBtn" onclick="document.getElementById('imageInput').click()"
+                        title="Nahrát obrázek">📷</button>
+                    <button id="fileUpload" class="iconBtn" onclick="document.getElementById('fileInput').click()"
+                        title="Připojit soubor (PDF, kód, XML...)" style="display:none;">📎</button>
+                    <input type="file" id="imageInput" accept="image/*" style="display:none"
+                        onchange="handleImageUpload(event)">
+                    <input type="file" id="fileInput"
+                        accept=".pdf,.txt,.cs,.js,.ts,.py,.java,.cpp,.c,.h,.xml,.json,.html,.css,.md,.sql,.sh,.bat,.ps1,image/*"
+                        style="display:none" onchange="handleFileUpload(event)">
+                </div>
+                <div id="imagePreview" style="display:none; margin-bottom: 8px;"></div>
                 <textarea id="input" rows="3" placeholder="Zadejte zprávu... (Ctrl+Enter pro odeslání)"></textarea>
                 <button id="send">Odeslat</button>
             </div>
@@ -63,331 +128,29 @@
             <div id="notifications"></div>
         </div>
     </div>
-    <script>
-        const chatDiv = document.getElementById('chat');
-        const input = document.getElementById('input');
-        const sendBtn = document.getElementById('send');
-        const notificationsDiv = document.getElementById('notifications');
-        let conversationHistory = [];
-        let currentProvider = 'gemini';
-        let totalTokens = 0;
-        let claudeUsage = { totalCost: 0, isWithinLimit: true };
-        let lastUserMessage = '';
-        let currentSessionId = null;
-        const tokenLimits = {
-            'gemini': 1000000,
-            'gemini-2.5': 1000000,
-            'openai': 128000,
-            'openai-test': 128000,
-            'claude': 200000,
-            'claude-haiku': 200000,
-            'mistral': 32000,
-            'mistral-large': 128000
-        };
 
-        async function loadHistory() {
-            try {
-                const r = await fetch('/api/chat/history');
-                if (r.ok) {
-                    const session = await r.json();
-                    if (session) {
-                        currentSessionId = session.id;
-                        conversationHistory = session.messages || [];
-                        chatDiv.innerHTML = '';
-                        totalTokens = 0;
-                        conversationHistory.forEach(msg => {
-                            const tokens = estimateTokens(msg.content);
-                            totalTokens += tokens;
-                            addMessage(msg.content, msg.role === 'assistant' ? 'bot' : 'user', tokens);
-                        });
-                        updateAllTokenDisplays();
-                        chatDiv.scrollTop = chatDiv.scrollHeight;
-                        addNotification('Info', 'Historie načtena.');
-                    }
-                }
-            } catch (e) {
-                console.error(e);
-                addNotification('Error', 'Nepodařilo se načíst historii.');
-            }
-        }
+    <!-- API Keys Management Modal -->
+    <div id="apiKeysModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Správa API klíčů</h2>
+                <button class="validateAllBtn" onclick="validateAllKeys()">🔄 Ověřit vše</button>
+                <button class="closeModal" onclick="closeApiKeysModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="keysList"></div>
+                <div class="add-key-section">
+                    <h3>Přidat nový klíč</h3>
+                    <input type="text" id="newKeyAlias" placeholder="Název klíče (např. 'Hlavní klíč')" />
+                    <input type="text" id="newKeyValue" placeholder="API klíč" />
+                    <button onclick="addNewApiKey()">Přidat</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        async function startNewChat() {
-            if (confirm('Zahájit nový chat?')) {
-                try {
-                    const r = await fetch('/api/chat/new', { method: 'POST' });
-                    if (r.ok) {
-                        const session = await r.json();
-                        currentSessionId = session.id;
-                        conversationHistory = [];
-                        chatDiv.innerHTML = '';
-                        totalTokens = 0;
-                        lastUserMessage = '';
-                        updateAllTokenDisplays();
-                        addNotification('Info', 'Nový chat zahájen.');
-                        loadSessions();
-                    }
-                } catch (e) {
-                    addNotification('Error', 'Chyba při vytváření chatu.');
-                }
-            }
-        }
-
-        async function loadClaudeUsage() {
-            try {
-                const r = await fetch('/api/chat/claude-usage');
-                if (r.ok) {
-                    claudeUsage = await r.json();
-                    updateClaudeDisplay();
-                }
-            } catch (e) { }
-        }
-
-        function updateClaudeDisplay() {
-            ['claude-haiku'].forEach(p => {
-                const btn = document.querySelector(`[data-provider="${p}"]`);
-                if (btn && !btn.classList.contains('disabled')) {
-                    const s = btn.querySelector('.modelStats');
-                    if (s) s.innerHTML = `<span class="tokenUsage">$${claudeUsage.totalCost.toFixed(2)}</span> / $5.00`;
-                    if (!claudeUsage.isWithinLimit) disableProvider(p, 'Monthly Limit Reached');
-                }
-            });
-        }
-
-        function estimateTokens(text) { return Math.ceil(text.length / 4); }
-
-        function updateAllTokenDisplays() {
-            document.querySelectorAll('.modelBtn').forEach(btn => {
-                if (!btn.classList.contains('disabled')) {
-                    const p = btn.dataset.provider;
-                    if (p === 'claude-haiku') return;
-                    const u = btn.querySelector('.tokenUsage');
-                    if (u) u.textContent = totalTokens.toLocaleString();
-                    const limit = tokenLimits[p];
-                    if (limit && totalTokens > limit) disableProvider(p, 'Token Limit Exceeded');
-                }
-            });
-        }
-
-        function selectModel(p) {
-            const btn = document.querySelector(`[data-provider="${p}"]`);
-            if (!btn || btn.classList.contains('disabled')) return;
-            document.querySelectorAll('.modelBtn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentProvider = p;
-            addNotification('Info', `Přepnuto na: ${btn.querySelector('.modelName').textContent}`);
-        }
-
-        function exportChat() {
-            const text = conversationHistory.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n\n');
-            const blob = new Blob([text], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `chat_${new Date().toISOString().slice(0, 10)}.txt`;
-            a.click();
-            URL.revokeObjectURL(url);
-            addNotification('Success', 'Chat exportován.');
-        }
-
-        function repeatLast() {
-            if (lastUserMessage) {
-                input.value = lastUserMessage;
-                input.focus();
-                addNotification('Info', 'Předchozí dotaz zkopírován.');
-            } else {
-                addNotification('Warn', 'Žádný předchozí dotaz.');
-            }
-        }
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                addNotification('Success', 'Zkopírováno do schránky!');
-            }).catch(() => {
-                addNotification('Error', 'Nelze zkopírovat');
-            });
-        }
-
-        function parseMarkdown(text) {
-            const placeholders = [];
-            const addPlaceholder = (content, type) => {
-                placeholders.push({ content, type });
-                return `%%%LINKPH${placeholders.length - 1}%%%`;
-            };
-            text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, title, url) => addPlaceholder({ title, url }, 'mdlink'));
-            text = text.replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, m => addPlaceholder(m, 'email'));
-            text = text.replace(/(https?:\/\/[^\s<>"]+)/g, m => addPlaceholder(m, 'url'));
-            text = text.replace(/(^|[\s(])(www\.[^\s<>"]+)/g, (m, prefix, u) => prefix + addPlaceholder(u, 'www'));
-            let html = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            html = html.replace(/```([\s\S]*?)```/g, '<pre><button class="copyBtn" onclick="copyToClipboard(this.nextElementSibling.textContent)">Kopírovat</button><code>$1</code></pre>');
-            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-            html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-            html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
-            html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-            html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
-            html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-            html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-            html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-            html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
-            html = html.replace(/(\<li\>.*\<\/li\>)/s, '<ul>$1</ul>');
-            html = html.replace(/%%%LINKPH(\d+)%%%/g, (m, i) => {
-                const item = placeholders[parseInt(i)];
-                if (!item) return m;
-                if (item.type === 'mdlink') return `<a href="${item.content.url}" target="_blank">${item.content.title}</a> <button class="copyBtn" onclick="copyToClipboard('${item.content.url}')">📋</button>`;
-                if (item.type === 'email') return `<a href="mailto:${item.content}">${item.content}</a> <button class="copyBtn" onclick="copyToClipboard('${item.content}')">📋</button>`;
-                if (item.type === 'url' || item.type === 'www') {
-                    const href = item.type === 'www' ? 'http://' + item.content : item.content;
-                    return `<a href="${href}" target="_blank">${item.content}</a> <button class="copyBtn" onclick="copyToClipboard('${href}')">📋</button>`;
-                }
-                return m;
-            });
-            return html;
-        }
-
-        function addMessage(text, role, tokens = 0) {
-            const el = document.createElement('div');
-            el.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
-            const header = document.createElement('div');
-            header.className = 'msgHeader';
-            header.textContent = role === 'user' ? '🧑‍💻 Uživatel' : '🤖 AI';
-            if (tokens > 0) header.textContent += ` • ${tokens.toLocaleString()} tokenů`;
-            const content = document.createElement('div');
-            content.className = 'msgContent';
-            content.innerHTML = parseMarkdown(text);
-            el.appendChild(header);
-            el.appendChild(content);
-            chatDiv.appendChild(el);
-            chatDiv.scrollTop = chatDiv.scrollHeight;
-        }
-
-        function addNotification(type, msg) {
-            const el = document.createElement('div');
-            el.className = 'note ' + type.toLowerCase();
-            const time = new Date().toLocaleTimeString();
-            el.innerHTML = `<strong>${type}</strong> <span style="font-size:0.8em;opacity:0.7">(${time})</span><br />${msg}`;
-            notificationsDiv.insertBefore(el, notificationsDiv.firstChild);
-        }
-
-        async function sendMessage() {
-            const userInput = input.value.trim();
-            if (!userInput) return;
-            lastUserMessage = userInput;
-            const userTokens = estimateTokens(userInput);
-            addMessage(userInput, 'user', userTokens);
-            input.value = '';
-            conversationHistory.push({ role: 'user', content: userInput });
-            totalTokens += userTokens;
-            updateAllTokenDisplays();
-            addNotification('Info', `Odesílám... (${userTokens} tokenů)`);
-            try {
-                const resp = await fetch('/api/chat/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        messages: conversationHistory,
-                        provider: currentProvider,
-                        sessionId: currentSessionId
-                    })
-                });
-                const data = await resp.json();
-                if (data.success) {
-                    if (data.sessionId) currentSessionId = data.sessionId;
-                    let botMsg = data.response;
-                    if (botMsg.startsWith('[[FALLBACK_WARNING]]')) {
-                        botMsg = botMsg.replace('[[FALLBACK_WARNING]]', '');
-                        addNotification('Warn', 'Model vyčerpán. Použit fallback.');
-                        disableProvider(currentProvider, 'Quota Exceeded');
-                    }
-                    const botTokens = estimateTokens(botMsg);
-                    addMessage(botMsg, 'bot', botTokens);
-                    conversationHistory.push({ role: 'assistant', content: botMsg });
-                    totalTokens += botTokens;
-                    updateAllTokenDisplays();
-                    if (currentProvider === 'claude-haiku') await loadClaudeUsage();
-                    addNotification('Success', `Odpověď přijata. Celkem: ${totalTokens.toLocaleString()} tokenů.`);
-                    loadSessions(); // Refresh sessions list after message
-                } else {
-                    addNotification('Error', data.error);
-                    if (/(429|TooManyRequests|Quota|403)/.test(data.error))
-                        disableProvider(currentProvider, 'Quota Exceeded');
-                }
-            } catch (e) {
-                addNotification('Error', 'Network Error: ' + e.message);
-            }
-        }
-
-        function disableProvider(p, reason = 'Unavailable') {
-            const btn = document.querySelector(`[data-provider="${p}"]`);
-            if (btn && !btn.classList.contains('disabled')) {
-                btn.classList.add('disabled');
-                btn.disabled = true;
-                btn.querySelector('.modelStats').innerHTML = `<span style="color:#ff6b6b;">${reason}</span>`;
-                addNotification('Warn', `Provider '${p}' deaktivován: ${reason}`);
-                const next = Array.from(document.querySelectorAll('.modelBtn:not(.disabled)')).find(b => !b.disabled);
-                if (next) selectModel(next.dataset.provider);
-            }
-        }
-
-        sendBtn.addEventListener('click', sendMessage);
-
-        input.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && !e.ctrlKey) {
-                e.preventDefault();
-                sendMessage();
-            } else if (e.key === 'Enter' && e.ctrlKey) {
-                const start = input.selectionStart;
-                const end = input.selectionEnd;
-                const value = input.value;
-                input.value = value.slice(0, start) + '\n' + value.slice(end);
-                input.selectionStart = input.selectionEnd = start + 1;
-                e.preventDefault();
-            }
-        });
-
-        loadClaudeUsage();
-        loadHistory();
-        loadSessions();
-
-        async function loadSessions() {
-            try {
-                const r = await fetch('/api/chat/sessions');
-                if (r.ok) {
-                    const list = await r.json();
-                    const ul = document.getElementById('sessions');
-                    ul.innerHTML = '';
-                    list.forEach(s => {
-                        const li = document.createElement('li');
-                        li.textContent = new Date(s.createdAt).toLocaleString();
-                        li.title = s.id;
-                        if (s.id === currentSessionId) li.classList.add('active');
-                        li.onclick = () => loadSession(s.id);
-                        ul.appendChild(li);
-                    });
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        async function loadSession(id) {
-            try {
-                const r = await fetch(`/api/chat/session/${id}`);
-                if (r.ok) {
-                    const session = await r.json();
-                    currentSessionId = session.id;
-                    conversationHistory = session.messages || [];
-                    chatDiv.innerHTML = '';
-                    totalTokens = 0;
-                    conversationHistory.forEach(msg => {
-                        const tokens = estimateTokens(msg.content);
-                        totalTokens += tokens;
-                        addMessage(msg.content, msg.role === 'assistant' ? 'bot' : 'user', tokens);
-                    });
-                    updateAllTokenDisplays();
-                    chatDiv.scrollTop = chatDiv.scrollHeight;
-                    addNotification('Info', 'Chat načten.');
-                    loadSessions();
-                }
-            } catch (e) { console.error(e); }
-        }
-    </script>
+    <script src="app.js"></script>
+    <script src="chat-helpers.js"></script>
 </body>
 
 </html>

@@ -10,11 +10,13 @@ public class ChatController : ControllerBase
 {
     private readonly Func<string, IAIProvider> _providerFactory;
     private readonly ChatService _chatService;
+    private readonly TavilyService _tavilyService;
 
-    public ChatController(Func<string, IAIProvider> providerFactory, ChatService chatService)
+    public ChatController(Func<string, IAIProvider> providerFactory, ChatService chatService, TavilyService tavilyService)
     {
         _providerFactory = providerFactory;
         _chatService = chatService;
+        _tavilyService = tavilyService;
     }
 
     [HttpGet("history")]
@@ -47,13 +49,119 @@ public class ChatController : ControllerBase
         return Ok(session);
     }
 
+    [HttpDelete("session/{id}")]
+    public async Task<IActionResult> DeleteSession(string id)
+    {
+        var result = await _chatService.DisableSessionAsync(id);
+        if (result)
+            return Ok(new { success = true, message = "Chat byl deaktivován." });
+        return NotFound(new { success = false, message = "Chat nebyl nalezen." });
+    }
+
+    [HttpPost("session/{sessionId}/upload")]
+    public async Task<IActionResult> UploadFile(string sessionId, [FromBody] FileUploadRequest request)
+    {
+        try
+        {
+            // Decode base64 file data
+            var fileData = Convert.FromBase64String(request.FileData);
+            
+            // Save file to session directory
+            var attachedFile = await _chatService.SaveFileToSessionAsync(
+                sessionId, 
+                request.FileName, 
+                fileData, 
+                request.MimeType
+            );
+            
+            // Load session and add file reference
+            var session = await _chatService.LoadSessionAsync(sessionId);
+            if (session != null)
+            {
+                session.AttachedFiles.Add(attachedFile);
+                await _chatService.SaveSessionAsync(session);
+            }
+            
+            return Ok(new { success = true, file = attachedFile });
+        }
+        catch (Exception ex)
+        {
+            return Ok(new { success = false, error = ex.Message });
+        }
+    }
+
+    [HttpGet("session/{sessionId}/file/{fileName}")]
+    public IActionResult DownloadFile(string sessionId, string fileName)
+    {
+        try
+        {
+            var filePath = _chatService.GetAbsoluteFilePath(sessionId, Path.Combine("files", fileName));
+            
+            if (!System.IO.File.Exists(filePath))
+                return NotFound();
+            
+            var fileBytes = System.IO.File.ReadAllBytes(filePath);
+            var mimeType = GetMimeType(fileName);
+            
+            return File(fileBytes, mimeType, fileName);
+        }
+        catch (Exception ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+    }
+
+    private string GetMimeType(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch
+        {
+            ".pdf" => "application/pdf",
+            ".txt" => "text/plain",
+            ".cs" => "text/plain",
+            ".js" => "text/javascript",
+            ".json" => "application/json",
+            ".xml" => "application/xml",
+            ".png" => "image/png",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            _ => "application/octet-stream"
+        };
+    }
+
     [HttpPost("chat")]
     public async Task<IActionResult> Chat([FromBody] ChatRequest request)
     {
         try
         {
+            var messagesToProcess = request.Messages.ToList();
+
+            // Web Search Logic
+            if (request.UseSearch)
+            {
+                var lastUserMsg = messagesToProcess.LastOrDefault(m => m.Role == "user");
+                if (lastUserMsg != null)
+                {
+                    try 
+                    {
+                        var searchResult = await _tavilyService.SearchAsync(lastUserMsg.Content);
+                        
+                        // Add search results as a system message or context
+                        // We'll insert it before the last user message
+                        var contextMsg = new Message("system", $"[Web Search Results for '{lastUserMsg.Content}']:\n{searchResult}\n\nUse these results to answer the user's question if relevant.");
+                        messagesToProcess.Insert(messagesToProcess.Count - 1, contextMsg);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log error but continue
+                        Console.WriteLine($"Search failed: {ex.Message}");
+                    }
+                }
+            }
+
             var provider = _providerFactory(request.Provider);
-            var response = await provider.GetResponseAsync(request.Messages);
+            var response = await provider.GetResponseAsync(messagesToProcess, request.Image);
 
             // Save history
             var session = !string.IsNullOrEmpty(request.SessionId) 
@@ -62,11 +170,24 @@ public class ChatController : ControllerBase
 
             if (session == null) session = await _chatService.CreateNewSessionAsync();
 
-            // Update session messages
-            var updatedMessages = request.Messages.ToList();
-            updatedMessages.Add(new Message("assistant", response));
+            // Update session messages (we save the original user message, not the one with search context)
+            var sessionMessages = request.Messages.ToList();
+            sessionMessages.Add(new Message("assistant", response));
             
-            session.Messages = updatedMessages;
+            session.Messages = sessionMessages;
+            
+            // Set title from first user message if not set
+            if (session.Title == "Nový chat" || string.IsNullOrEmpty(session.Title))
+            {
+                var firstUserMessage = session.Messages.FirstOrDefault(m => m.Role == "user");
+                if (firstUserMessage != null)
+                {
+                    session.Title = firstUserMessage.Content.Length > 50 
+                        ? firstUserMessage.Content.Substring(0, 50) + "..." 
+                        : firstUserMessage.Content;
+                }
+            }
+            
             await _chatService.SaveSessionAsync(session);
 
             return Ok(new { success = true, response, sessionId = session.Id });
@@ -107,4 +228,19 @@ public class ChatRequest
     public IEnumerable<Message> Messages { get; set; }
     public string Provider { get; set; }
     public string SessionId { get; set; }
+    public bool UseSearch { get; set; }
+    public ImageData? Image { get; set; }
+}
+
+public class ImageData
+{
+    public string Data { get; set; } // Base64 encoded image
+    public string MimeType { get; set; }
+}
+
+public class FileUploadRequest
+{
+    public string FileName { get; set; }
+    public string FileData { get; set; } // Base64 encoded
+    public string MimeType { get; set; }
 }

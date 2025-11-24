@@ -27,6 +27,11 @@ public class ClaudeProvider : IAIProvider
 
     public async Task<string> GetResponseAsync(IEnumerable<Message> messages)
     {
+        return await GetResponseAsync(messages, null);
+    }
+
+    public async Task<string> GetResponseAsync(IEnumerable<Message> messages, ImageData? image)
+    {
         if (!ClaudeUsageTracker.IsWithinLimit())
             throw new HttpRequestException("Claude API: Monthly limit reached ($4.50 safety threshold).");
 
@@ -44,10 +49,47 @@ public class ClaudeProvider : IAIProvider
             }
         } : null;
 
+        var messagesList = messages.ToList();
+        var claudeMessages = new List<object>();
+
+        for (int i = 0; i < messagesList.Count; i++)
+        {
+            var msg = messagesList[i];
+            var isLastUserMessage = (i == messagesList.Count - 1) && msg.Role == "user";
+
+            if (isLastUserMessage && image != null)
+            {
+                // Last user message with image
+                claudeMessages.Add(new
+                {
+                    role = msg.Role,
+                    content = new object[]
+                    {
+                        new 
+                        { 
+                            type = "image",
+                            source = new 
+                            { 
+                                type = "base64",
+                                media_type = image.MimeType,
+                                data = image.Data
+                            }
+                        },
+                        new { type = "text", text = msg.Content }
+                    }
+                });
+            }
+            else
+            {
+                // Regular message
+                claudeMessages.Add(new { role = msg.Role, content = msg.Content });
+            }
+        }
+
         var request = new {
             model = _model,
             max_tokens = 4096,
-            messages = messages.Select(m => new { role = m.Role, content = m.Content }).ToArray(),
+            messages = claudeMessages.ToArray(),
             tools = tools
         };
 

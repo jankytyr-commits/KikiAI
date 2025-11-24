@@ -137,4 +137,13 @@ public class MistralProvider : IAIProvider
 
         return message?["content"]?.ToString() ?? string.Empty;
     }
+
+    public async Task<string> GetResponseAsync(IEnumerable<Message> messages, ImageData? image)
+    {
+        if (image != null)
+        {
+            throw new NotSupportedException("Mistral models do not support image inputs. Please use Gemini, GPT-4o, or Claude for vision capabilities.");
+        }
+        return await GetResponseAsync(messages);
+    }
 }

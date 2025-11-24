@@ -1,0 +1,72 @@
+{
+    "Providers": {
+        "gemini": {
+            "ActiveKeyId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+            "Keys": [
+                {
+                    "Id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+                    "Name": "Default Gemini Key",
+                    "Key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                    "Usage": {
+                        "Tokens": null,
+                        "Cost": null,
+                        "TokenLimit": null,
+                        "CostLimit": null
+                    },
+                    "CreatedAt": "2025-01-01T00:00:00.0000000+01:00"
+                }
+            ]
+        },
+        "openai": {
+            "ActiveKeyId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+            "Keys": [
+                {
+                    "Id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+                    "Name": "Default OpenAI Key",
+                    "Key": "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                    "Usage": {
+                        "Tokens": null,
+                        "Cost": null,
+                        "TokenLimit": null,
+                        "CostLimit": null
+                    },
+                    "CreatedAt": "2025-01-01T00:00:00.0000000+01:00"
+                }
+            ]
+        },
+        "claude": {
+            "ActiveKeyId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+            "Keys": [
+                {
+                    "Id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+                    "Name": "Default Claude Key",
+                    "Key": "sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                    "Usage": {
+                        "Tokens": null,
+                        "Cost": null,
+                        "TokenLimit": null,
+                        "CostLimit": null
+                    },
+                    "CreatedAt": "2025-01-01T00:00:00.0000000+01:00"
+                }
+            ]
+        },
+        "mistral": {
+            "ActiveKeyId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+            "Keys": [
+                {
+                    "Id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+                    "Name": "Default Mistral Key",
+                    "Key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                    "Usage": {
+                        "Tokens": null,
+                        "Cost": null,
+                        "TokenLimit": null,
+                        "CostLimit": null
+                    },
+                    "CreatedAt": "2025-01-01T00:00:00.0000000+01:00"
+                }
+            ]
+        }
+    }
+}

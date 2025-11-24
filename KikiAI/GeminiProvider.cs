@@ -22,13 +22,57 @@ public class GeminiProvider : IAIProvider
 
     public async Task<string> GetResponseAsync(IEnumerable<Message> messages)
     {
+        return await GetResponseAsync(messages, null);
+    }
+
+    public async Task<string> GetResponseAsync(IEnumerable<Message> messages, ImageData? image)
+    {
+        var systemMessage = messages.FirstOrDefault(m => m.Role == "system");
+        var chatMessages = messages.Where(m => m.Role != "system").ToList();
+
+        // Build parts for the last user message (which may include an image)
+        var contents = new List<object>();
+        
+        for (int i = 0; i < chatMessages.Count; i++)
+        {
+            var msg = chatMessages[i];
+            var isLastUserMessage = (i == chatMessages.Count - 1) && msg.Role == "user";
+            
+            if (isLastUserMessage && image != null)
+            {
+                // Last user message with image
+                contents.Add(new
+                {
+                    role = "user",
+                    parts = new object[]
+                    {
+                        new { text = msg.Content },
+                        new 
+                        { 
+                            inline_data = new 
+                            { 
+                                mime_type = image.MimeType,
+                                data = image.Data 
+                            } 
+                        }
+                    }
+                });
+            }
+            else
+            {
+                // Regular message
+                contents.Add(new
+                {
+                    role = msg.Role == "assistant" ? "model" : "user",
+                    parts = new[] { new { text = msg.Content } }
+                });
+            }
+        }
+
         var request = new
         {
-            contents = messages.Select(m => new
-            {
-                role = m.Role == "assistant" ? "model" : m.Role,
-                parts = new[] { new { text = m.Content } }
-            }).ToArray(),
+            system_instruction = systemMessage != null ? new { parts = new[] { new { text = systemMessage.Content } } } : null,
+            contents = contents.ToArray(),
             tools = new[]
             {
                 new { google_search = new { } }

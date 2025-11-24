@@ -41,6 +41,7 @@ Chats/
 # API Keys (security)
 appsettings.json
 appsettings.Development.json
+Config/api-keys.json
 
 # Usage tracking
 claude_usage.json

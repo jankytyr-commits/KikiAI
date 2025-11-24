@@ -24,10 +24,50 @@ public class OpenAIProvider : IAIProvider
 
     public async Task<string> GetResponseAsync(IEnumerable<Message> messages)
     {
+        return await GetResponseAsync(messages, null);
+    }
+
+    public async Task<string> GetResponseAsync(IEnumerable<Message> messages, ImageData? image)
+    {
+        var messagesList = messages.ToList();
+        var openAIMessages = new List<object>();
+
+        for (int i = 0; i < messagesList.Count; i++)
+        {
+            var msg = messagesList[i];
+            var isLastUserMessage = (i == messagesList.Count - 1) && msg.Role == "user";
+
+            if (isLastUserMessage && image != null)
+            {
+                // Last user message with image
+                openAIMessages.Add(new
+                {
+                    role = msg.Role,
+                    content = new object[]
+                    {
+                        new { type = "text", text = msg.Content },
+                        new 
+                        { 
+                            type = "image_url",
+                            image_url = new 
+                            { 
+                                url = $"data:{image.MimeType};base64,{image.Data}"
+                            }
+                        }
+                    }
+                });
+            }
+            else
+            {
+                // Regular message
+                openAIMessages.Add(new { role = msg.Role, content = msg.Content });
+            }
+        }
+
         var request = new
         {
             model = _model,
-            messages = messages.Select(m => new { role = m.Role, content = m.Content }).ToArray()
+            messages = openAIMessages.ToArray()
         };
 
         var response = await _httpClient.PostAsJsonAsync(Endpoint, request);

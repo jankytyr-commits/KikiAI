@@ -311,6 +311,201 @@ body {
     text-overflow: ellipsis;
 }
 
+.user {
+    border-left: 3px solid #4fc3f7;
+}
+
+.bot {
+    border-left: 3px solid #a5d6a7;
+}
+
+.msgHeader {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 0.25rem;
+}
+
+.msgContent {
+    color: #e0e0e0;
+    line-height: 1.6;
+}
+
+.msgContent h1,
+.msgContent h2,
+.msgContent h3 {
+    margin-top: 0.8rem;
+    margin-bottom: 0.4rem;
+    color: #4fc3f7;
+}
+
+.msgContent ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.msgContent li {
+    margin: 0.3rem 0;
+}
+
+.msgContent pre {
+    background: #1a1a1a;
+    padding: 0.8rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+    position: relative;
+}
+
+.msgContent code {
+    background: #2c2c2c;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.copyBtn {
+    background: #4fc3f7;
+    color: #000;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s;
+    opacity: 0.8;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+}
+
+.copyBtn:hover {
+    background: #6fd3ff;
+    opacity: 1;
+}
+
+.msgContent a {
+    color: #4fc3f7;
+    text-decoration: underline;
+}
+
+#inputArea {
+    display: flex;
+    padding: 1rem;
+    background: #1e1e1e;
+    border-top: 1px solid #333;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+#input {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    background: #2c2c2c;
+    color: #e0e0e0;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 70px;
+    max-height: 200px;
+}
+
+#send {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    background: #4fc3f7;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    height: fit-content;
+}
+
+#send:hover {
+    background: #6fd3ff;
+}
+
+#sidebar {
+    flex: 1;
+    background: #111;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#notifications {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.note {
+    padding: 0.8rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    word-wrap: break-word;
+    animation: fadeIn 0.3s ease;
+}
+
+.note.success {
+    background: #1b5e20;
+    color: #e8f5e9;
+    border-left: 4px solid #4caf50;
+}
+
+.note.info {
+    background: #0d47a1;
+    color: #e3f2fd;
+    border-left: 4px solid #2196f3;
+}
+
+.note.warn {
+    background: #f57f17;
+    color: #fff3e0;
+    border-left: 4px solid #ff9800;
+}
+
+.note.error {
+    background: #b71c1c;
+    color: #ffebee;
+    border-left: 4px solid #f44336;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#sessions {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+}
+
+#sessions li {
+    padding: 0.4rem 0.6rem;
+    margin-bottom: 0.3rem;
+    background: #2c2c2c;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 #sessions li:hover {
     background: #4fc3f7;
     color: #000;
@@ -320,4 +515,426 @@ body {
     background: #1a3a4a;
     border-left: 3px solid #4fc3f7;
     color: #fff;
+}
+
+.copyBtn.inline {
+    position: static;
+    display: inline-block;
+    margin-left: 0.3rem;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.75rem;
+    vertical-align: middle;
+}
+
+.copyBtn.inline {
+    position: static;
+    display: inline-block;
+    margin-left: 0.3rem;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.75rem;
+    vertical-align: middle;
+}
+
+
+/* Delete session button */
+.deleteSessionBtn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.2rem 0.4rem;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.2s;
+    flex-shrink: 0;
+}
+
+.deleteSessionBtn:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+#sessions li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+
+/* Model Settings & Modal Styles */
+.modelItem {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.3rem;
+}
+
+.modelSettingsBtn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.2s;
+    color: #e0e0e0;
+    padding: 0 0.5rem;
+}
+
+.modelSettingsBtn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    color: #4fc3f7;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    background: #1e1e1e;
+    padding: 1.5rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 0.5rem;
+}
+
+.closeModal {
+    background: transparent;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #ff6b6b;
+    line-height: 1;
+}
+
+.keyItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid #333;
+}
+
+.keyItem.active {
+    color: #4fc3f7;
+    font-weight: bold;
+}
+
+.keyActions button {
+    background: transparent;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.keyActions button:hover {
+    background: #333;
+}
+
+.add-key-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+}
+
+.add-key-section input {
+    width: 100%;
+    margin: 0.3rem 0;
+    padding: 0.6rem;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background: #2c2c2c;
+    color: #e0e0e0;
+    box-sizing: border-box;
+}
+
+.add-key-section button {
+    margin-top: 0.5rem;
+    width: 100%;
+    padding: 0.6rem;
+    background: #4fc3f7;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #1e1e1e;
+    font-weight: bold;
+}
+
+#sessions {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+}
+
+#sessions li {
+    padding: 0.4rem 0.6rem;
+    margin-bottom: 0.3rem;
+    background: #2c2c2c;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#sessions li:hover {
+    background: #4fc3f7;
+    color: #000;
+}
+
+#sessions li.active {
+    background: #1a3a4a;
+    border-left: 3px solid #4fc3f7;
+    color: #fff;
+}
+
+.copyBtn.inline {
+    position: static;
+    display: inline-block;
+    margin-left: 0.3rem;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.75rem;
+    vertical-align: middle;
+}
+
+.copyBtn.inline {
+    position: static;
+    display: inline-block;
+    margin-left: 0.3rem;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.75rem;
+    vertical-align: middle;
+}
+
+
+/* Delete session button */
+.deleteSessionBtn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.2rem 0.4rem;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.2s;
+    flex-shrink: 0;
+}
+
+.deleteSessionBtn:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+#sessions li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+
+/* Model Settings & Modal Styles */
+.modelItem {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.3rem;
+}
+
+.modelSettingsBtn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.2s;
+    color: #e0e0e0;
+    padding: 0 0.5rem;
+}
+
+.modelSettingsBtn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    color: #4fc3f7;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    background: #1e1e1e;
+    padding: 1.5rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 0.5rem;
+}
+
+.closeModal {
+    background: transparent;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #ff6b6b;
+    line-height: 1;
+}
+
+.keyItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid #333;
+}
+
+.keyItem.active {
+    color: #4fc3f7;
+    font-weight: bold;
+}
+
+.keyActions button {
+    background: transparent;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.keyActions button:hover {
+    background: #333;
+}
+
+.add-key-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+}
+
+.add-key-section input {
+    width: 100%;
+    margin: 0.3rem 0;
+    padding: 0.6rem;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background: #2c2c2c;
+    color: #e0e0e0;
+    box-sizing: border-box;
+}
+
+.add-key-section button {
+    margin-top: 0.5rem;
+    width: 100%;
+    padding: 0.6rem;
+    background: #4fc3f7;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #1e1e1e;
+    font-weight: bold;
+}
+
+.add-key-section button:hover {
+    background: #29b6f6;
+}
+
+.validationStatus {
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
+    vertical-align: middle;
+}
+
+.validateAllBtn {
+    background: #2c2c2c;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: auto;
+    margin-right: 1rem;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.validateAllBtn:hover {
+    background: #3c3c3c;
+    border-color: #4fc3f7;
+}
+
+.inputControls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+.iconBtn {
+    background: #2c2c2c;
+    border: 1px solid #444;
+    color: #888;
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.iconBtn:hover {
+    background: #3c3c3c;
+    color: #e0e0e0;
+}
+
+.iconBtn.active {
+    background: #1a3a4a;
+    border-color: #4fc3f7;
+    color: #4fc3f7;
+    box-shadow: 0 0 8px rgba(79, 195, 247, 0.2);
 }
