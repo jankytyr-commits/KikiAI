@@ -938,3 +938,66 @@ body {
     color: #4fc3f7;
     box-shadow: 0 0 8px rgba(79, 195, 247, 0.2);
 }
+/* Markdown Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    background-color: #2c2c2c;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+
+th {
+    background-color: #383838;
+    color: #fff;
+    font-weight: 600;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover {
+    background-color: #333;
+}
+
+/* Markdown Code Blocks */
+pre {
+    background-color: #1e1e1e !important; /* Override highlight.js background if needed */
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    border: 1px solid #444;
+}
+
+code {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+/* Inline code */
+p code, li code {
+    background-color: #2c2c2c;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #e06c75; /* Atom One Dark red/pink */
+}
+
+/* Links in markdown */
+.msgContent a {
+    color: #61afef;
+    text-decoration: none;
+}
+
+.msgContent a:hover {
+    text-decoration: underline;
+}
+

@@ -591,68 +591,76 @@ function copyToClipboard(text) {
 // Text Processing Functions
 // ============================================
 
-function parseMarkdown(text) {
-    const placeholders = [];
-    const addPlaceholder = (content, type) => {
-        placeholders.push({ content, type });
-        return `%%%LINKPH${placeholders.length - 1}%%%`;
-    };
-    text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, title, url) => addPlaceholder({ title, url }, 'mdlink'));
-    text = text.replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, m => addPlaceholder(m, 'email'));
-    text = text.replace(/(https?:\/\/[^\s<>"]+)/g, m => addPlaceholder(m, 'url'));
-    text = text.replace(/(^|[\s(])(www\.[^\s<>"]+)/g, (m, prefix, u) => prefix + addPlaceholder(u, 'www'));
-    let html = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    html = html.replace(/```([\s\S]*?)```/g, '<pre><button class="copyBtn" onclick="copyToClipboard(this.nextElementSibling.textContent)">Kopírovat</button><code>$1</code></pre>');
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
-    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
-    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-    html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-    html = html.replace(/%%%LINKPH(\d+)%%%/g, (m, i) => {
-        const item = placeholders[parseInt(i)];
-        if (!item) return m;
-
-        if (item.type === 'mdlink') {
-            const url = item.content.url;
-            const title = item.content.title;
-
-            // Check if it's a session file link
-            if (url.startsWith('/api/chat/session/') && url.includes('/file/')) {
-                // Extract file extension for icon
-                const fileName = url.split('/').pop();
-                const ext = fileName.split('.').pop().toLowerCase();
-
-                // Determine icon based on file type
-                let icon = '📎';
-                if (['pdf'].includes(ext)) icon = '📄';
-                else if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) icon = '📷';
-                else if (['txt', 'md'].includes(ext)) icon = '📝';
-                else if (['cs', 'js', 'ts', 'py', 'java', 'cpp', 'c', 'h'].includes(ext)) icon = '💻';
-                else if (['xml', 'json', 'yaml', 'yml'].includes(ext)) icon = '📋';
-
-                return `<span style="display:inline-flex;align-items:center;gap:4px;background:#2c2c2c;padding:4px 8px;border-radius:4px;margin:2px;">
-                    ${icon} <a href="${url}" download style="color:#4a9eff;text-decoration:none;">${title}</a>
-                    <button class="copyBtn inline" onclick="copyToClipboard('${url}')" title="Kopírovat odkaz">📋</button>
-                </span>`;
-            }
-
-            // Regular markdown link
-            return `<a href="${url}" target="_blank">${title}</a> <button class="copyBtn inline" onclick="copyToClipboard(\`${url}\`)">📋</button>`;
-        }
-
-        if (item.type === 'email') return `<a href="mailto:${item.content}">${item.content}</a> <button class="copyBtn inline" onclick="copyToClipboard(\`${item.content}\`)">📋</button>`;
-        if (item.type === 'url' || item.type === 'www') {
-            const href = item.type === 'www' ? 'http://' + item.content : item.content;
-            return `<a href="${href}" target="_blank">${item.content}</a> <button class="copyBtn inline" onclick="copyToClipboard(\`${href}\`)">📋</button>`;
-        }
-        return m;
+// Configure marked options
+if (typeof marked !== 'undefined') {
+    marked.setOptions({
+        highlight: function (code, lang) {
+            const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+            return hljs.highlight(code, { language }).value;
+        },
+        langPrefix: 'hljs language-', // highlight.js css expects this
+        breaks: true,
+        gfm: true
     });
-    return html;
+
+    // Custom renderer for file links
+    const renderer = new marked.Renderer();
+    const originalLink = renderer.link;
+
+    renderer.link = function ({ href, title, text }) {
+        // Handle session file links
+        if (href && href.startsWith('/api/chat/session/') && href.includes('/file/')) {
+            const fileName = href.split('/').pop();
+            const ext = fileName.split('.').pop().toLowerCase();
+            let icon = '📎';
+            if (['pdf'].includes(ext)) icon = '📄';
+            else if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) icon = '📷';
+            else if (['txt', 'md'].includes(ext)) icon = '📝';
+            else if (['cs', 'js', 'ts', 'py', 'java', 'cpp', 'c', 'h'].includes(ext)) icon = '💻';
+            else if (['xml', 'json', 'yaml', 'yml'].includes(ext)) icon = '📋';
+
+            return `<span style="display:inline-flex;align-items:center;gap:4px;background:#2c2c2c;padding:4px 8px;border-radius:4px;margin:2px;">
+                ${icon} <a href="${href}" download style="color:#4a9eff;text-decoration:none;">${text}</a>
+                <button class="copyBtn inline" onclick="copyToClipboard('${href}')" title="Kopírovat odkaz">📋</button>
+            </span>`;
+        }
+
+        // Default link
+        return `<a href="${href}" target="_blank" title="${title || ''}">${text}</a>`;
+    };
+
+    // Override code block renderer to add copy button and HTML preview
+    renderer.code = function ({ text, lang, escaped }) {
+        const language = (lang && hljs.getLanguage(lang)) ? lang : 'plaintext';
+        const highlighted = hljs.highlight(text, { language }).value;
+
+        // For HTML, add preview button
+        if (language === 'html' || language === 'xml') {
+            const previewId = 'html-preview-' + Date.now() + Math.random().toString(36).substr(2, 9);
+            // Store HTML for preview
+            window.htmlPreviews = window.htmlPreviews || {};
+            window.htmlPreviews[previewId] = text;
+
+            return `<pre><button class="copyBtn" onclick="copyToClipboard(this.nextElementSibling.textContent)">Kopírovat</button><button class="copyBtn" onclick="showHtmlPreview('${previewId}')" style="margin-left:4px;">👁️ Náhled</button><code class="hljs language-${language}">${highlighted}</code></pre>`;
+        }
+
+        return `<pre><button class="copyBtn" onclick="copyToClipboard(this.nextElementSibling.textContent)">Kopírovat</button><code class="hljs language-${language}">${highlighted}</code></pre>`;
+    };
+
+    marked.use({ renderer });
+}
+
+function parseMarkdown(text) {
+    if (typeof marked === 'undefined') {
+        console.warn('Marked.js not loaded, using fallback.');
+        return text.replace(/\n/g, '<br>');
+    }
+    try {
+        return marked.parse(text);
+    } catch (e) {
+        console.error('Markdown parsing error:', e);
+        return text;
+    }
 }
 
 // ============================================

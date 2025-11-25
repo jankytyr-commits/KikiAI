@@ -45,3 +45,7 @@ Config/api-keys.json
 
 # Usage tracking
 claude_usage.json
+KikiAI/Config/api-keys.json
+
+KikiAI/publish/
+publish/
