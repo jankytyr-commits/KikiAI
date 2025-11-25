@@ -49,3 +49,14 @@ KikiAI/Config/api-keys.json
 
 KikiAI/publish/
 publish/
+# Temporary utility scripts
+fix-html.py
+quick-cleanup.ps1
+
+# Backup and cleanup files
+*.backup
+*.broken_backup
+*_clean.html
+index.html.backup
+index.html.broken_backup
+index_clean.html
