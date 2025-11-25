@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using KikiAI;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,20 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
 
 // Register HttpClient for external API calls
 builder.Services.AddHttpClient();
+
+// Configure MySQL Database (optional - only if Database section exists in config)
+var dbServer = builder.Configuration["Database:Server"];
+var dbAccount = builder.Configuration["Database:AccountName"];
+var dbName = builder.Configuration["Database:DatabaseName"];
+var dbPassword = builder.Configuration["Database:Password"];
+
+if (!string.IsNullOrEmpty(dbServer) && !string.IsNullOrEmpty(dbAccount))
+{
+    var connectionString = $"Server={dbServer};Database={dbName};User={dbAccount};Password={dbPassword};";
+    builder.Services.AddDbContext<KikiDbContext>(options =>
+        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+}
+
 builder.Services.AddSingleton<TavilyService>(sp => 
     new TavilyService(sp.GetRequiredService<IHttpClientFactory>(), builder.Configuration["Tavily:ApiKey"]));
 
