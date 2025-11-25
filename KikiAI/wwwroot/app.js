@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load initial data
     loadClaudeUsage();
-    loadHistory();
     loadSessions();
 
     // Update image button visibility based on default model

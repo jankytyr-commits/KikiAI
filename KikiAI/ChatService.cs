@@ -70,7 +70,7 @@ public class ChatService
         var path = Path.Combine(_chatsDir, $"chat_{id}.json");
         if (!File.Exists(path)) return null;
         var json = await File.ReadAllTextAsync(path);
-        return JsonSerializer.Deserialize<ChatSession>(json);
+        return JsonSerializer.Deserialize<ChatSession>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     }
 
     public async Task SaveSessionAsync(ChatSession session)
@@ -115,7 +115,7 @@ public class ChatService
             try
             {
                 var json = await File.ReadAllTextAsync(file);
-                var session = JsonSerializer.Deserialize<ChatSession>(json);
+                var session = JsonSerializer.Deserialize<ChatSession>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 if (session != null)
                 {
                     summaries.Add(new ChatSessionSummary
@@ -131,6 +131,7 @@ public class ChatService
             catch (Exception ex)
             {
                 Console.WriteLine($"Error loading session from {file}: {ex.Message}");
+                File.AppendAllText("error_log.txt", $"Error loading session from {file}: {ex.Message}\n{ex.StackTrace}\n");
             }
         }
 

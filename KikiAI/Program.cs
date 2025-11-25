@@ -56,7 +56,11 @@ builder.Services.AddSingleton<Func<string, IAIProvider>>(sp => key =>
 });
 
 // Add controllers for chat endpoint
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 
 var app = builder.Build();
 
