@@ -280,7 +280,7 @@ async function loadSession(id) {
             conversationHistory.forEach(msg => {
                 const tokens = estimateTokens(msg.content);
                 totalTokens += tokens;
-                addMessage(msg.content, msg.role === 'assistant' ? 'bot' : 'user', tokens);
+                addMessage(msg.content, msg.role === 'assistant' ? 'bot' : 'user', tokens, msg.metadata);
             });
             updateAllTokenDisplays();
             chatDiv.scrollTop = chatDiv.scrollHeight;
@@ -336,15 +336,18 @@ async function sendMessage() {
     lastUserMessage = userInput;
     const userTokens = estimateTokens(userInput);
 
+    // Create metadata for user message
+    const userMetadata = createMessageMetadata('user');
+
     // Show user message with image if present
     let displayMessage = userInput;
     if (currentImage) {
         displayMessage = `📷 ${currentImage.name}\n${userInput}`;
     }
-    addMessage(displayMessage, 'user', userTokens);
+    addMessage(displayMessage, 'user', userTokens, userMetadata);
     input.value = '';
 
-    conversationHistory.push({ role: 'user', content: userInput });
+    conversationHistory.push({ role: 'user', content: userInput, metadata: userMetadata });
     totalTokens += userTokens;
     updateAllTokenDisplays();
 
@@ -378,20 +381,6 @@ async function sendMessage() {
         if (data.success) {
             if (data.sessionId) currentSessionId = data.sessionId;
             let botMsg = data.response;
-            if (botMsg.startsWith('[[FALLBACK_WARNING]]')) {
-                botMsg = botMsg.replace('[[FALLBACK_WARNING]]', '');
-                addNotification('Warn', 'Model vyčerpán. Použit fallback.');
-                disableProvider(currentProvider, 'Quota Exceeded');
-            }
-            const botTokens = estimateTokens(botMsg);
-            addMessage(botMsg, 'bot', botTokens);
-            conversationHistory.push({ role: 'assistant', content: botMsg });
-            totalTokens += botTokens;
-            updateAllTokenDisplays();
-            if (currentProvider === 'claude-haiku' || currentProvider === 'claude') await loadClaudeUsage();
-            addNotification('Success', `Odpověď přijata. Celkem: ${totalTokens.toLocaleString()} tokenů.`);
-            loadSessions();
-
             // Add file link to the user message in chat history (after successful send)
             if (currentImage && currentImage.uploadedFile) {
                 const fileLink = `\n\n📷 [${currentImage.uploadedFile.fileName}](/api/chat/session/${currentSessionId}/file/${currentImage.uploadedFile.fileName})`;
@@ -437,22 +426,65 @@ async function loadClaudeUsage() {
 // UI Rendering Functions
 // ============================================
 
-function addMessage(text, role, tokens = 0) {
+function addMessage(text, role, tokens = 0, metadata = null) {
+    // Create default metadata if not provided
+    if (!metadata) {
+        metadata = createMessageMetadata(role, role === 'assistant' ? currentProvider : null);
+    }
+
     const el = document.createElement('div');
     el.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
+    if (role === 'assistant') el.dataset.provider = metadata.model || currentProvider;
+
+    // Header
     const header = document.createElement('div');
     header.className = 'msgHeader';
-    header.textContent = role === 'user' ? '🧑‍💻 Uživatel' : '🤖 AI';
-    if (tokens > 0 && role === 'user') header.textContent += ` • ${tokens.toLocaleString()} tokenů`;
-    if (role === 'user') {
-        const timeStr = new Date().toLocaleTimeString();
-        header.textContent += ` • ${timeStr}`;
+
+    // Icon & Name
+    const icon = role === 'user' ? '🧑‍💻' : getModelIcon(metadata.model);
+    const name = role === 'user' ? 'Uživatel' : 'AI';
+
+    let headerHtml = `
+        <span class="msgIcon">${icon}</span>
+        <span class="msgName">${name}</span>
+    `;
+
+    // Model Badge
+    if (role === 'assistant' && metadata.model) {
+        const color = getModelColor(metadata.model);
+        headerHtml += `<span class="modelBadge" style="color:${color};border:1px solid ${color};background:${color}20">${metadata.model}</span>`;
     }
+
+    // Spacer
+    headerHtml += `<div style="flex:1"></div>`;
+
+    // Tokens
+    if (tokens > 0) {
+        headerHtml += `<span class="msgTokens">${tokens.toLocaleString()} tok.</span>`;
+    }
+
+    // Time
+    if (metadata.timestamp) {
+        headerHtml += `<span class="msgTime">${formatTimestamp(metadata.timestamp)}</span>`;
+    }
+
+    // Actions
+    headerHtml += `
+        <div class="msgActions">
+            <button class="actionBtn" onclick="copyMessage(this)" title="Kopírovat">📋</button>
+            ${role === 'assistant' ? '<button class="actionBtn" onclick="regenerateResponse(this)" title="Regenerovat">🔄</button>' : ''}
+        </div>
+    `;
+
+    header.innerHTML = headerHtml;
+    el.appendChild(header);
+
+    // Content
     const content = document.createElement('div');
     content.className = 'msgContent';
     content.innerHTML = parseMarkdown(text);
-    el.appendChild(header);
     el.appendChild(content);
+
     chatDiv.appendChild(el);
     chatDiv.scrollTop = chatDiv.scrollHeight;
 }
