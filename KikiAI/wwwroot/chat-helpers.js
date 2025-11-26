@@ -202,6 +202,7 @@ async function startNewChat() {
             if (r.ok) {
                 const session = await r.json();
                 currentSessionId = session.id;
+                currentSessionTitle = 'Nový chat';
                 conversationHistory = [];
                 chatDiv.innerHTML = '';
                 totalTokens = 0;
@@ -274,6 +275,7 @@ async function loadSession(id) {
         if (r.ok) {
             const session = await r.json();
             currentSessionId = session.id;
+            currentSessionTitle = session.title || 'Nový chat';
             conversationHistory = session.messages || [];
             chatDiv.innerHTML = '';
             totalTokens = 0;
@@ -301,6 +303,7 @@ async function deleteSession(id, event) {
                 addNotification('Success', 'Chat byl smazán.');
                 if (currentSessionId === id) {
                     currentSessionId = null;
+                    currentSessionTitle = 'Nový chat';
                     conversationHistory = [];
                     chatDiv.innerHTML = '';
                     totalTokens = 0;
@@ -472,7 +475,9 @@ function addMessage(text, role, tokens = 0, metadata = null) {
     headerHtml += `
         <div class="msgActions">
             <button class="actionBtn" onclick="copyMessage(this)" title="Kopírovat">📋</button>
+            <button class="actionBtn" onclick="editMessage(this)" title="Upravit">✏️</button>
             ${role === 'assistant' ? '<button class="actionBtn" onclick="regenerateResponse(this)" title="Regenerovat">🔄</button>' : ''}
+            <button class="actionBtn" onclick="deleteMessage(this)" title="Smazat">🗑️</button>
         </div>
     `;
 
@@ -590,15 +595,163 @@ function disableProvider(p, reason = 'Unavailable') {
 // ============================================
 
 function exportChat() {
-    const text = conversationHistory.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n\n');
-    const blob = new Blob([text], { type: 'text/plain' });
+    if (conversationHistory.length === 0) {
+        addNotification('Warn', 'Žádné zprávy k exportu.');
+        return;
+    }
+
+    let content = `# ${currentSessionTitle}\n\n`;
+    content += `*Exportováno: ${new Date().toLocaleString()}*\n\n---\n\n`;
+
+    conversationHistory.forEach(msg => {
+        const role = msg.role === 'user' ? '🧑‍💻 User' : '🤖 AI';
+        const model = msg.metadata?.model ? ` (${msg.metadata.model})` : '';
+        const time = msg.metadata?.timestamp ? ` - ${new Date(msg.metadata.timestamp).toLocaleTimeString()}` : '';
+
+        content += `## ${role}${model}${time}\n\n`;
+        content += `${msg.content}\n\n`;
+        content += `---\n\n`;
+    });
+
+    const blob = new Blob([content], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `chat_${new Date().toISOString().slice(0, 10)}.txt`;
+
+    // Sanitize filename
+    const safeTitle = currentSessionTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    a.download = `chat_${safeTitle}_${new Date().toISOString().slice(0, 10)}.md`;
+
     a.click();
     URL.revokeObjectURL(url);
-    addNotification('Success', 'Chat exportován.');
+    addNotification('Success', 'Chat exportován jako Markdown.');
+}
+
+function importChat() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.md,.txt,.json';
+    input.onchange = async e => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async event => {
+            const content = event.target.result;
+            const messages = parseImportedChat(content);
+
+            if (messages.length > 0) {
+                try {
+                    const session = {
+                        title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+                        messages: messages
+                    };
+
+                    const r = await fetch('/api/chat/import', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(session)
+                    });
+
+                    if (r.ok) {
+                        const res = await r.json();
+                        addNotification('Success', 'Chat importován.');
+                        loadSession(res.id);
+                    } else {
+                        addNotification('Error', 'Chyba při importu.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    addNotification('Error', 'Chyba sítě.');
+                }
+            } else {
+                addNotification('Warn', 'Nepodařilo se rozpoznat žádné zprávy.');
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+function parseImportedChat(content) {
+    console.log('Parsing imported content, length:', content.length);
+
+    // 1. Try JSON
+    try {
+        // Remove BOM and whitespace
+        const cleanContent = content.trim().replace(/^\uFEFF/, '');
+        const json = JSON.parse(cleanContent);
+        console.log('JSON parsed successfully:', json);
+
+        let msgs = null;
+
+        if (Array.isArray(json)) msgs = json;
+        else if (json.messages && Array.isArray(json.messages)) msgs = json.messages;
+        else if (json.Messages && Array.isArray(json.Messages)) msgs = json.Messages; // Handle PascalCase
+
+        if (msgs) {
+            console.log('Found messages array:', msgs.length);
+            // Normalize keys to lowercase
+            return msgs.map(m => ({
+                role: (m.role || m.Role || 'user').toLowerCase(),
+                content: m.content || m.Content || '',
+                metadata: m.metadata || m.Metadata || null
+            }));
+        } else {
+            console.warn('JSON parsed but no messages array found');
+        }
+    } catch (e) {
+        console.error('JSON parse error:', e);
+    }
+
+    // 2. Try Markdown (Current Export Format)
+    if (content.includes('# ') && content.includes('## ')) {
+        const messages = [];
+        const parts = content.split(/^## /gm);
+
+        for (let i = 1; i < parts.length; i++) {
+            const part = parts[i];
+            const lines = part.split('\n');
+            const headerLine = lines[0];
+            const body = lines.slice(1).join('\n').trim();
+
+            let role = 'user';
+            if (headerLine.toLowerCase().includes('ai') || headerLine.toLowerCase().includes('assistant') || headerLine.toLowerCase().includes('bot')) {
+                role = 'assistant';
+            }
+
+            // Remove separator lines
+            const cleanBody = body.replace(/^---$/gm, '').trim();
+
+            if (cleanBody) {
+                messages.push({ role: role, content: cleanBody });
+            }
+        }
+        if (messages.length > 0) return messages;
+    }
+
+    // 3. Try Plain Text (Old Format: [USER]: ...)
+    const regex = /\[(USER|ASSISTANT|BOT|AI)\]:\s*/gi;
+    if (regex.test(content)) {
+        const messages = [];
+        const parts = content.split(regex);
+
+        if (parts.length > 2) {
+            for (let i = 1; i < parts.length; i += 2) {
+                const roleStr = parts[i].toUpperCase();
+                const text = parts[i + 1].trim();
+
+                let role = 'user';
+                if (['ASSISTANT', 'BOT', 'AI'].includes(roleStr)) role = 'assistant';
+
+                messages.push({ role: role, content: text });
+            }
+            return messages;
+        }
+    }
+
+    // 4. Fallback: Treat as single user message
+    return [{ role: 'user', content: content }];
 }
 
 function repeatLast() {
@@ -840,4 +993,143 @@ async function validateAllKeys() {
     });
     await Promise.all(promises);
     addNotification('Info', `Ověření dokončeno: ${validCount}/${totalCount} platných.`);
+}
+// ============================================
+// Message Management Functions
+// ============================================
+
+async function updateSessionMessages() {
+    if (!currentSessionId) return;
+    try {
+        await fetch(`/api/chat/session/${currentSessionId}/messages`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(conversationHistory)
+        });
+    } catch (e) {
+        console.error('Failed to update session:', e);
+        addNotification('Error', 'Chyba při ukládání chatu.');
+    }
+}
+
+function deleteMessage(button) {
+    if (!confirm('Smazat tuto zprávu?')) return;
+    const msgDiv = button.closest('.msg');
+    const index = Array.from(chatDiv.children).indexOf(msgDiv);
+
+    if (index > -1) {
+        conversationHistory.splice(index, 1);
+        msgDiv.remove();
+        updateSessionMessages();
+        addNotification('Info', 'Zpráva smazána.');
+    }
+}
+
+function editMessage(button) {
+    const msgDiv = button.closest('.msg');
+    const index = Array.from(chatDiv.children).indexOf(msgDiv);
+    const contentDiv = msgDiv.querySelector('.msgContent');
+    const currentText = conversationHistory[index].content;
+
+    // Switch to edit mode
+    contentDiv.innerHTML = `
+        <textarea class="editInput" style="width:100%;min-height:100px;background:#333;color:#fff;border:1px solid #555;padding:8px;border-radius:4px;">${currentText}</textarea>
+        <div style="margin-top:8px;display:flex;gap:8px;">
+            <button onclick="saveEditedMessage(this, ${index})" style="background:#4CAF50;color:white;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;">Uložit</button>
+            <button onclick="cancelEdit(this, ${index})" style="background:#666;color:white;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;">Zrušit</button>
+        </div>
+    `;
+
+    // Hide actions during edit
+    msgDiv.querySelector('.msgActions').style.display = 'none';
+}
+
+function saveEditedMessage(button, index) {
+    const msgDiv = button.closest('.msg');
+    const textarea = msgDiv.querySelector('textarea');
+    const newText = textarea.value;
+
+    conversationHistory[index].content = newText;
+    if (!conversationHistory[index].metadata) conversationHistory[index].metadata = {};
+    conversationHistory[index].metadata.edited = true;
+
+    // Restore view
+    const contentDiv = msgDiv.querySelector('.msgContent');
+    contentDiv.innerHTML = parseMarkdown(newText);
+    msgDiv.querySelector('.msgActions').style.display = 'flex';
+
+    updateSessionMessages();
+    addNotification('Success', 'Zpráva upravena.');
+}
+
+function cancelEdit(button, index) {
+    const msgDiv = button.closest('.msg');
+    const originalText = conversationHistory[index].content;
+
+    // Restore view
+    const contentDiv = msgDiv.querySelector('.msgContent');
+    contentDiv.innerHTML = parseMarkdown(originalText);
+    msgDiv.querySelector('.msgActions').style.display = 'flex';
+}
+
+async function regenerateResponse(button) {
+    const msgDiv = button.closest('.msg');
+    const index = Array.from(chatDiv.children).indexOf(msgDiv);
+
+    if (index === -1) return;
+
+    // Check if previous message exists and is user
+    if (index > 0 && conversationHistory[index - 1].role === 'user') {
+        // Truncate history to include the user message
+        conversationHistory = conversationHistory.slice(0, index);
+
+        // Remove from DOM
+        while (chatDiv.children.length > index) {
+            chatDiv.lastChild.remove();
+        }
+
+        // Trigger generation
+        await sendChatRequest();
+    } else {
+        addNotification('Warn', 'Nelze regenerovat (chybí kontext).');
+    }
+}
+
+async function sendChatRequest() {
+    const lastMsg = conversationHistory[conversationHistory.length - 1];
+    if (lastMsg.role !== 'user') return;
+
+    const userTokens = estimateTokens(lastMsg.content);
+    addNotification('Info', `Regeneruji odpověď...`);
+
+    try {
+        const requestBody = {
+            messages: conversationHistory,
+            provider: currentProvider,
+            sessionId: currentSessionId,
+            useSearch: isSearchEnabled
+        };
+
+        const resp = await fetch('/api/chat/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+
+        const data = await resp.json();
+        if (data.success) {
+            let botMsg = data.response;
+            const botTokens = estimateTokens(botMsg);
+            const botMetadata = createMessageMetadata('assistant', currentProvider);
+
+            addMessage(botMsg, 'assistant', botTokens, botMetadata);
+            conversationHistory.push({ role: 'assistant', content: botMsg, metadata: botMetadata });
+            totalTokens += botTokens;
+            updateAllTokenDisplays();
+        } else {
+            addNotification('Error', data.error);
+        }
+    } catch (e) {
+        addNotification('Error', 'Network Error: ' + e.message);
+    }
 }

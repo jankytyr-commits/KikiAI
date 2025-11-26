@@ -1,7 +1,7 @@
 # Robust FTP Upload for KikiAI
-$FtpServer = "ftpx.aspone.cz"
-$FtpUsername = "www.ekobio.org"
-$FtpPassword = "czfsOmdoqMnjX3k"
+$FtpServer = "ekobio.org"
+$FtpUsername = "ekobio.org"
+$FtpPassword = "Pde-93qR2Km"
 $LocalPath = ".\KikiAI\publish"
 $RemotePath = "/"
 

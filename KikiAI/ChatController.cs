@@ -49,6 +49,34 @@ public class ChatController : ControllerBase
         return Ok(session);
     }
 
+    [HttpPost("import")]
+    public async Task<IActionResult> ImportChat([FromBody] ChatSession session)
+    {
+        // Generate new ID to avoid conflicts
+        session.Id = Guid.NewGuid().ToString();
+        session.CreatedAt = DateTime.Now;
+        
+        // Ensure title is set
+        if (string.IsNullOrEmpty(session.Title))
+        {
+            session.Title = "Importovaný chat";
+        }
+
+        await _chatService.SaveSessionAsync(session);
+        return Ok(new { success = true, id = session.Id });
+    }
+
+    [HttpPut("session/{id}/messages")]
+    public async Task<IActionResult> UpdateSessionMessages(string id, [FromBody] List<Message> messages)
+    {
+        var session = await _chatService.LoadSessionAsync(id);
+        if (session == null) return NotFound();
+
+        session.Messages = messages;
+        await _chatService.SaveSessionAsync(session);
+        return Ok(new { success = true });
+    }
+
     [HttpDelete("session/{id}")]
     public async Task<IActionResult> DeleteSession(string id)
     {

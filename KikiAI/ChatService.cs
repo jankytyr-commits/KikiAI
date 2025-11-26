@@ -87,7 +87,10 @@ public class ChatService
         var path = Path.Combine(_chatsDir, $"chat_{id}.json");
         if (!File.Exists(path)) return false;
         
-        var disabledPath = Path.Combine(_chatsDir, $"chat_{id}_disabled.json");
+        var disabledDir = Path.Combine(_chatsDir, "Disabled_Chats");
+        if (!Directory.Exists(disabledDir)) Directory.CreateDirectory(disabledDir);
+
+        var disabledPath = Path.Combine(disabledDir, $"chat_{id}_disabled.json");
         File.Move(path, disabledPath);
         
         // If this was the current session, clear it
