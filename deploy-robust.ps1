@@ -25,12 +25,34 @@ function Upload-File {
         $s.Write($content, 0, $content.Length)
         $s.Close()
         $request.GetResponse().Close()
-        Write-Host "✅ Uploaded: $remoteName" -ForegroundColor Green
+        Write-Host "[OK] Uploaded: $remoteName" -ForegroundColor Green
         return $true
     }
     catch {
-        Write-Host "❌ Failed to upload $remoteName : $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "[FAIL] Failed to upload $remoteName : $($_.Exception.Message)" -ForegroundColor Red
         return $false
+    }
+}
+
+function Ensure-Directory {
+    param($remotePath)
+    $parts = $remotePath.Split('/')
+    $currentPath = ""
+    foreach ($part in $parts) {
+        if ($part -eq "") { continue }
+        $currentPath += "/" + $part
+        $ftpUri = "ftp://$FtpServer$currentPath"
+        try {
+            $request = [System.Net.FtpWebRequest]::Create($ftpUri)
+            $request.Credentials = $credentials
+            $request.Method = [System.Net.WebRequestMethods+Ftp]::MakeDirectory
+            $request.KeepAlive = $false
+            $request.GetResponse().Close()
+            Write-Host "[DIR] Created directory: $currentPath" -ForegroundColor Gray
+        }
+        catch {
+            # Ignore error if directory already exists
+        }
     }
 }
 
@@ -44,43 +66,43 @@ function Delete-File {
         $request.KeepAlive = $false
         $request.EnableSsl = $false
         $request.GetResponse().Close()
-        Write-Host "🗑️ Deleted: $remoteName" -ForegroundColor Yellow
+        Write-Host "[DEL] Deleted: $remoteName" -ForegroundColor Yellow
     }
     catch {
-        Write-Host "⚠️ Could not delete $remoteName (maybe didn't exist)" -ForegroundColor Gray
+        Write-Host "[WARN] Could not delete $remoteName (maybe didn't exist)" -ForegroundColor Gray
     }
 }
 
 # 1. STOP APP
-Write-Host "🛑 Stopping app (uploading app_offline.htm)..." -ForegroundColor Yellow
+Write-Host "Stopping app (uploading app_offline.htm)..." -ForegroundColor Yellow
 if (Test-Path $AppOfflinePath) {
     Upload-File $AppOfflinePath "app_offline.htm"
 }
 else {
-    # Create temporary app_offline.htm if missing
     Set-Content "app_offline.htm" "<html><body>App is updating...</body></html>"
     Upload-File "app_offline.htm" "app_offline.htm"
 }
 
-Write-Host "⏳ Waiting 5s for app to release locks..." -ForegroundColor Cyan
+Write-Host "Waiting 5s for app to release locks..." -ForegroundColor Cyan
 Start-Sleep -Seconds 5
 
 # 2. UPLOAD FILES
-Write-Host "🚀 Uploading published files..." -ForegroundColor Cyan
+Write-Host "Uploading published files..." -ForegroundColor Cyan
 $files = Get-ChildItem -Path $LocalPath -Recurse -File
 foreach ($file in $files) {
     $relativePath = $file.FullName.Substring((Resolve-Path $LocalPath).Path.Length + 1).Replace('\', '/')
-    # if ($relativePath.StartsWith("wwwroot/")) { $relativePath = $relativePath.Substring(8) }
     
-    # Skip creating directories for simplicity in this script, assuming they exist from previous runs
-    # or relying on FTP server to handle it (some do, some don't). 
-    # For robustness, we just try upload.
+    # Ensure directory exists
+    $directory = [System.IO.Path]::GetDirectoryName($relativePath).Replace('\', '/')
+    if ($directory) {
+        Ensure-Directory "$RemotePath$directory"
+    }
     
     Upload-File $file.FullName $relativePath
 }
 
 # 3. START APP
-Write-Host "🟢 Starting app (removing app_offline.htm)..." -ForegroundColor Green
+Write-Host "Starting app (removing app_offline.htm)..." -ForegroundColor Green
 Delete-File "app_offline.htm"
 
-Write-Host "✨ Deployment Complete!" -ForegroundColor Green
+Write-Host "Deployment Complete!" -ForegroundColor Green

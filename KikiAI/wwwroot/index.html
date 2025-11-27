@@ -5,8 +5,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KikiAI Chat</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="style-inline-buttons.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style-inline-buttons.css">
     <!-- Highlight.js Theme -->
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -150,178 +150,16 @@
                     <h3>Přidat nový klíč</h3>
                     <input type="text" id="newKeyAlias" placeholder="Název klíče (např. 'Hlavní klíč')" />
                     <input type="text" id="newKeyValue" placeholder="API klíč" />
-                    <!DOCTYPE html>
-                    <html lang="cs">
+                    <button onclick="addNewApiKey()">Přidat</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    <head>
-                        <meta charset="UTF-8" />
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                        <title>KikiAI Chat</title>
-                        <link rel="stylesheet" href="style.css">
-                        <link rel="stylesheet" href="style-inline-buttons.css">
-                        <!-- Highlight.js Theme -->
-                        <link rel="stylesheet"
-                            href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-                        <!-- Marked.js & Highlight.js -->
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
-                        <script
-                            src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-                    </head>
+    <script src="js/app.js?v=13"></script>
+    <script src="js/message-ui.js?v=13"></script>
+    <script src="js/chat-helpers.js?v=13"></script>
+    <script src="js/html-preview.js?v=13"></script>
+</body>
 
-                    <body>
-                        <div id="menuBar">
-                            <button class="menuBtn" onclick="repeatLast()">🔄 Zopakovat předchozí</button>
-                            <button class="menuBtn" onclick="startNewChat()">➕ Nový chat</button>
-                            <button class="menuBtn" onclick="exportChat()">💾 Exportovat chat</button>
-                            <button class="menuBtn" onclick="importChat()">📥 Importovat chat</button>
-                        </div>
-
-                        <div id="modelSelector">
-                            <div class="modelItem">
-                                <button class="modelBtn active" data-provider="gemini" onclick="selectModel('gemini')">
-                                    <div class="modelName">Gemini 2.0 Flash</div>
-                                    <div class="modelStats"><span class="tokenUsage">0</span> / 1,000,000</div>
-                                </button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('gemini')"
-                                    title="Nastavení API klíčů">⚙️</button>
-                            </div>
-                            <div class="modelItem">
-                                <button class="modelBtn" data-provider="gemini-2.5" onclick="selectModel('gemini-2.5')">
-                                    <div class="modelName">Gemini 2.5 Flash</div>
-                                    <div class="modelStats"><span class="tokenUsage">0</span> / 1,000,000</div>
-                                </button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('gemini-2.5')"
-                                    title="Nastavení API klíčů">⚙️</button>
-                            </div>
-                            <div class="modelItem">
-                                <button class="modelBtn" data-provider="gemini-1.5-pro"
-                                    onclick="selectModel('gemini-1.5-pro')">
-                                    <div class="modelName">Gemini 1.5 Pro</div>
-                                    <div class="modelStats"><span class="tokenUsage">0</span> / 2,000,000</div>
-                                </button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('gemini-1.5-pro')"
-                                    title="Nastavení API klíčů">⚙️</button>
-                            </div>
-                            <div class="modelItem">
-                                <button class="modelBtn" data-provider="gemini-1.5-flash"
-                                    onclick="selectModel('gemini-1.5-flash')">
-                                    <div class="modelName">Gemini 1.5 Flash</div>
-                                    <div class="modelStats"><span class="tokenUsage">0</span> / 1,000,000</div>
-                                </button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('gemini-1.5-flash')"
-                                    title="Nastavení API klíčů">⚙️</button>
-                            </div>
-                            <div class="modelItem">
-                                <button class="modelBtn disabled" data-provider="openai" disabled>
-                                    <div class="modelName">OpenAI GPT-4o</div>
-                                    <div class="modelStats">Quota Exceeded</div>
-                                </button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('openai')"
-                                    title="Nastavení API klíčů">⚙️</button>
-                            </div>
-                            <div class="modelItem">
-                                <button class="modelBtn" data-provider="openai-test"
-                                    onclick="selectModel('openai-test')">
-                                    <div class="modelName">GPT-4o-mini</div>
-                                    <div class="modelStats"><span class="tokenUsage">0</span> / 128,000</div>
-                                </button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('openai-test')"
-                                    title="Nastavení API klíčů">⚙️</button>
-                            </div>
-                            <div class="modelItem">
-                                <button class="modelBtn" data-provider="claude" onclick="selectModel('claude')">
-                                    <div class="modelName">Claude 3 Haiku</div>
-                                    <div class="modelStats"><span class="tokenUsage">$0.00</span> / $0.25</div>
-                                </button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('claude')"
-                                    title="Nastavení API klíčů">⚙️</button>
-                            </div>
-                            <div class="modelItem">
-                                <button class="modelBtn" data-provider="claude-haiku"
-                                    onclick="selectModel('claude-haiku')">
-                                    <div class="modelName">Claude 3.5 Haiku</div>
-                                    <div class="modelStats"><span class="tokenUsage">$0.00</span> / $1.00</div>
-                                </button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('claude-haiku')"
-                                    title="Nastavení API klíčů">⚙️</button>
-                            </div>
-                            <div class="modelItem">
-                                <button class="modelBtn" data-provider="mistral" onclick="selectModel('mistral')">
-                                    <div class="modelName">Mistral Small</div>
-                                    <div class="modelStats"><span class="tokenUsage">0</span> / 32,000</div>
-                                </button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('mistral')"
-                                    title="Nastavení API klíčů">⚙️</button>
-                            </div>
-                            <div class="modelItem">
-                                <button class="modelBtn" data-provider="mistral-large"
-                                    onclick="selectModel('mistral-large')">
-                                    <div class="modelName">Mistral Large</div>
-                                    <div class="modelStats"><span class="tokenUsage">0</span> / 128,000</div>
-                                </button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('mistral-large')"
-                                    title="Nastavení API klíčů">⚙️</button>
-                            </div>
-                        </div>
-
-                        <div id="mainContent">
-                            <div id="chatArea">
-                                <div id="chat"></div>
-                                <div id="inputArea">
-                                    <div class="inputControls">
-                                        <button id="searchToggle" class="iconBtn" onclick="toggleSearch()"
-                                            title="Hledat na webu (Tavily)">🌐</button>
-                                        <button id="imageUpload" class="iconBtn"
-                                            onclick="document.getElementById('imageInput').click()"
-                                            title="Nahrát obrázek">📷</button>
-                                        <button id="fileUpload" class="iconBtn"
-                                            onclick="document.getElementById('fileInput').click()"
-                                            title="Připojit soubor (PDF, kód, XML...)" style="display:none;">📎</button>
-                                        <input type="file" id="imageInput" accept="image/*" style="display:none"
-                                            onchange="handleImageUpload(event)">
-                                        <input type="file" id="fileInput"
-                                            accept=".pdf,.txt,.cs,.js,.ts,.py,.java,.cpp,.c,.h,.xml,.json,.html,.css,.md,.sql,.sh,.bat,.ps1,image/*"
-                                            style="display:none" onchange="handleFileUpload(event)">
-                                    </div>
-                                    <div id="imagePreview" style="display:none; margin-bottom: 8px;"></div>
-                                    <textarea id="input" rows="3"
-                                        placeholder="Zadejte zprávu... (Ctrl+Enter pro odeslání)"></textarea>
-                                    <button id="send">Odeslat</button>
-                                </div>
-                            </div>
-                            <div id="sidebar">
-                                <h3>Chats</h3>
-                                <ul id="sessions"></ul>
-                                <h3>Notifications</h3>
-                                <div id="notifications"></div>
-                            </div>
-                        </div>
-
-                        <!-- API Keys Management Modal -->
-                        <div id="apiKeysModal" class="modal">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h2 id="modalTitle">Správa API klíčů</h2>
-                                    <button class="validateAllBtn" onclick="validateAllKeys()">🔄 Ověřit vše</button>
-                                    <button class="closeModal" onclick="closeApiKeysModal()">×</button>
-                                </div>
-                                <div class="modal-body">
-                                    <div id="keysList"></div>
-                                    <div class="add-key-section">
-                                        <h3>Přidat nový klíč</h3>
-                                        <input type="text" id="newKeyAlias"
-                                            placeholder="Název klíče (např. 'Hlavní klíč')" />
-                                        <input type="text" id="newKeyValue" placeholder="API klíč" />
-                                        <button onclick="addNewApiKey()">Přidat</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <script src="app.js?v=12"></script>
-                        <script src="message-ui.js?v=12"></script>
-                        <script src="chat-helpers.js?v=12"></script>
-                        <script src="html-preview.js?v=12"></script>
-                    </body>
-
-                    </html>
+</html>
