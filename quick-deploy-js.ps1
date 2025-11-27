@@ -2,7 +2,7 @@
 $FtpServer = "windows11.aspone.cz"
 $FtpUsername = "EkoBio.org_lordkikin"
 $FtpPassword = "Brzsilpot7!"
-$RemotePath = "/www/"
+$RemotePath = "/www/wwwroot/"
 
 Write-Host "=== Quick Upload: JS & HTML Files ===" -ForegroundColor Green
 
@@ -12,6 +12,7 @@ $credentials = New-Object System.Net.NetworkCredential($FtpUsername, $FtpPasswor
 $filesToUpload = @(
     @{ Local = ".\KikiAI\wwwroot\index.html"; Remote = "index.html" },
     @{ Local = ".\KikiAI\wwwroot\chat-helpers.js"; Remote = "chat-helpers.js" },
+    @{ Local = ".\KikiAI\wwwroot\chat-helpers-debug.js"; Remote = "chat-helpers-debug.js" },
     @{ Local = ".\KikiAI\wwwroot\app.js"; Remote = "app.js" },
     @{ Local = ".\KikiAI\wwwroot\message-ui.js"; Remote = "message-ui.js" }
 )

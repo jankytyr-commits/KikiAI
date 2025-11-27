@@ -70,7 +70,7 @@ Write-Host "🚀 Uploading published files..." -ForegroundColor Cyan
 $files = Get-ChildItem -Path $LocalPath -Recurse -File
 foreach ($file in $files) {
     $relativePath = $file.FullName.Substring((Resolve-Path $LocalPath).Path.Length + 1).Replace('\', '/')
-    if ($relativePath.StartsWith("wwwroot/")) { $relativePath = $relativePath.Substring(8) }
+    # if ($relativePath.StartsWith("wwwroot/")) { $relativePath = $relativePath.Substring(8) }
     
     # Skip creating directories for simplicity in this script, assuming they exist from previous runs
     # or relying on FTP server to handle it (some do, some don't). 
