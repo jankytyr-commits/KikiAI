@@ -177,8 +177,13 @@ public class ChatController : ControllerBase
                         
                         // Add search results as a system message or context
                         // We'll insert it before the last user message
-                        var contextMsg = new Message("system", $"[Web Search Results for '{lastUserMsg.Content}']:\n{searchResult}\n\nUse these results to answer the user's question if relevant.");
-                        messagesToProcess.Insert(messagesToProcess.Count - 1, contextMsg);
+                        // Append search results to the user message (create a copy to avoid modifying history)
+                        var lastUserMsgIndex = messagesToProcess.LastIndexOf(lastUserMsg);
+                        if (lastUserMsgIndex != -1)
+                        {
+                            var newContent = lastUserMsg.Content + $"\n\n[Web Search Results]:\n{searchResult}\n\nUse these results to answer the user's question if relevant.";
+                            messagesToProcess[lastUserMsgIndex] = new Message("user", newContent);
+                        }
                     }
                     catch (Exception ex)
                     {

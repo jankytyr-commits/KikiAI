@@ -4,6 +4,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using KikiAI;
+using System;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,8 +62,8 @@ builder.Services.AddSingleton<Func<string, IAIProvider>>(sp => key =>
         "openai-test" => new OpenAIProvider(httpFactory, GetKey("openai-test", "OpenAI:TestKey"), "gpt-4o-mini"),
         "gemini" => new GeminiProvider(httpFactory, GetKey("gemini", "Gemini:ApiKey"), "gemini-2.0-flash"),
         "gemini-2.5" => new GeminiProvider(httpFactory, GetKey("gemini-2.5", "Gemini:ApiKey"), "gemini-2.5-flash"),
-        "gemini-1.5-pro" => new GeminiProvider(httpFactory, GetKey("gemini-1.5-pro", "Gemini:ApiKey"), "gemini-1.5-pro"),
-        "gemini-1.5-flash" => new GeminiProvider(httpFactory, GetKey("gemini-1.5-flash", "Gemini:ApiKey"), "gemini-1.5-flash"),
+        "gemini-1.5-pro" => new GeminiProvider(httpFactory, GetKey("gemini-1.5-pro", "Gemini:ApiKey"), "gemini-pro-latest"),
+        "gemini-1.5-flash" => new GeminiProvider(httpFactory, GetKey("gemini-1.5-flash", "Gemini:ApiKey"), "gemini-flash-latest"),
         "claude" => new ClaudeProvider(httpFactory, GetKey("claude", "Claude:ApiKey"), "claude-3-haiku-20240307", sp.GetService<TavilyService>()),
         "claude-haiku" => new ClaudeProvider(httpFactory, GetKey("claude-haiku", "Claude:ApiKey"), "claude-3-5-haiku-20241022", sp.GetService<TavilyService>()),
         "mistral" => new MistralProvider(httpFactory, GetKey("mistral", "Mistral:ApiKey"), "mistral-small-latest", sp.GetService<TavilyService>()),
@@ -76,11 +78,36 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
+    
+
 
 var app = builder.Build();
 
-// Serve static files (frontend) from wwwroot
-app.UseDefaultFiles(); // serves index.html by default
+// Security middleware for flat deployment (Production)
+if (!app.Environment.IsDevelopment())
+{
+    app.Use(async (context, next) =>
+    {
+        var path = context.Request.Path.Value?.ToLower();
+        if (path != null && (
+            path.EndsWith(".json") || 
+            path.EndsWith(".dll") || 
+            path.EndsWith(".config") || 
+            path.EndsWith(".pdb") || 
+            path.EndsWith(".exe") || 
+            path.EndsWith(".deps.json") || 
+            path.EndsWith(".runtimeconfig.json")
+        ))
+        {
+            context.Response.StatusCode = 403;
+            return;
+        }
+        await next();
+    });
+}
+
+// Serve static files
+app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.MapControllers();

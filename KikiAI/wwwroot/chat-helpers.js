@@ -403,6 +403,15 @@ async function sendMessage() {
             if (currentImage) {
                 removeImage();
             }
+
+            // Display bot response
+            console.log('🎨 Bot response received, adding to UI...');
+            conversationHistory.push({ role: 'assistant', content: botMsg, metadata: data.metadata });
+            const botTokens = estimateTokens(botMsg);
+            totalTokens += botTokens;
+            addMessage(botMsg, 'assistant', botTokens, data.metadata);
+            updateAllTokenDisplays();
+            console.log('✅ Bot message added to UI');
         } else {
             addNotification('Error', data.error);
             if (/(429|TooManyRequests|Quota|403)/.test(data.error))
@@ -430,6 +439,19 @@ async function loadClaudeUsage() {
 // ============================================
 
 function addMessage(text, role, tokens = 0, metadata = null) {
+    console.log('🔍 addMessage called:', { text: text.substring(0, 50) + '...', role, tokens, chatDivExists: !!chatDiv });
+
+    // Verify chatDiv exists
+    if (!chatDiv) {
+        console.error('❌ CRITICAL: chatDiv is null or undefined!');
+        chatDiv = document.getElementById('chat');
+        if (!chatDiv) {
+            console.error('❌ FATAL: Cannot find #chat element in DOM!');
+            return;
+        }
+        console.warn('⚠️ chatDiv was null, but recovered by re-querying DOM');
+    }
+
     // Create default metadata if not provided
     if (!metadata) {
         metadata = createMessageMetadata(role, role === 'assistant' ? currentProvider : null);
@@ -491,6 +513,7 @@ function addMessage(text, role, tokens = 0, metadata = null) {
     el.appendChild(content);
 
     chatDiv.appendChild(el);
+    console.log('✅ Message appended to chatDiv. Child count:', chatDiv.children.length);
     chatDiv.scrollTop = chatDiv.scrollHeight;
 }
 

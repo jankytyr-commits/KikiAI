@@ -1,9 +1,9 @@
-# Robust FTP Upload for KikiAI
-$FtpServer = "ekobio.org"
-$FtpUsername = "ekobio.org"
-$FtpPassword = "Pde-93qR2Km"
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+$FtpServer = "windows11.aspone.cz"
+$FtpUsername = "EkoBio.org_lordkikin"
+$FtpPassword = "Brzsilpot7!"
 $LocalPath = ".\KikiAI\publish"
-$RemotePath = "/"
+$RemotePath = "/www/"
 
 Write-Host "=== Uploading to FTP (Root) ===" -ForegroundColor Green
 Write-Host "Server: $FtpServer" -ForegroundColor Cyan
@@ -11,7 +11,7 @@ Write-Host "Path: $RemotePath" -ForegroundColor Cyan
 Write-Host ""
 
 $credentials = New-Object System.Net.NetworkCredential($FtpUsername, $FtpPassword)
-$files = Get-ChildItem -Path $LocalPath -Recurse -File | Where-Object { $_.Extension -ne '.gz' }
+$files = Get-ChildItem -Path $LocalPath -Recurse -File | Where-Object { $_.Extension -ne '.gz' -and $_.FullName -notmatch '[\\/]publish[\\/]publish' }
 
 # Function to create directory
 function Create-FtpDirectory {
@@ -20,6 +20,8 @@ function Create-FtpDirectory {
         $request = [System.Net.FtpWebRequest]::Create($uri)
         $request.Credentials = $credentials
         $request.Method = [System.Net.WebRequestMethods+Ftp]::MakeDirectory
+        $request.KeepAlive = $false
+        $request.EnableSsl = $false
         $request.GetResponse() | Out-Null
         Write-Host "Created directory: $uri" -ForegroundColor Gray
     }
@@ -30,11 +32,22 @@ function Create-FtpDirectory {
 
 Write-Host "Found $($files.Count) files. Creating directories..." -ForegroundColor Yellow
 
+# Create logs directory
+Create-FtpDirectory "ftp://$FtpServer$RemotePath/logs"
+
+# Create empty wwwroot directory (required by ASP.NET Core even if files are in root)
+Create-FtpDirectory "ftp://$FtpServer$RemotePath/wwwroot"
+
 # Create all directories first
 $directories = $files | ForEach-Object {
     $localPathFull = (Resolve-Path $LocalPath).Path
     $relativePath = $_.DirectoryName.Substring($localPathFull.Length).Replace('\', '/')
     if ($relativePath.StartsWith('/')) { $relativePath = $relativePath.Substring(1) }
+    
+    # Flatten wwwroot - files go to root, but we keep wwwroot folder empty
+    if ($relativePath -eq "wwwroot") { return $null }
+    if ($relativePath.StartsWith("wwwroot/")) { $relativePath = $relativePath.Substring(8) }
+    
     if ($relativePath) { $relativePath }
 } | Select-Object -Unique | Sort-Object
 
@@ -57,6 +70,9 @@ $failed = 0
 foreach ($file in $files) {
     $localPathFull = (Resolve-Path $LocalPath).Path
     $relativePath = $file.FullName.Substring($localPathFull.Length + 1).Replace('\', '/')
+    
+    # Flatten wwwroot
+    if ($relativePath.StartsWith("wwwroot/")) { $relativePath = $relativePath.Substring(8) }
     $ftpUri = "ftp://$FtpServer$RemotePath$relativePath"
     
     try {
@@ -64,6 +80,8 @@ foreach ($file in $files) {
         $request.Credentials = $credentials
         $request.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
         $request.UseBinary = $true
+        $request.KeepAlive = $false
+        $request.EnableSsl = $false
         
         $fileContent = [System.IO.File]::ReadAllBytes($file.FullName)
         $request.ContentLength = $fileContent.Length
