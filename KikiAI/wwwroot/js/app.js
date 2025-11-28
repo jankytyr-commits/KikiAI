@@ -8,7 +8,7 @@ let sendBtn;
 let notificationsDiv;
 
 let conversationHistory = [];
-let currentProvider = 'gemini';
+let currentProvider = 'gemini-1.5-flash';
 let totalTokens = 0;
 let claudeUsage = { totalCost: 0, isWithinLimit: true };
 let lastUserMessage = '';
@@ -53,6 +53,32 @@ document.addEventListener('DOMContentLoaded', () => {
             input.selectionStart = input.selectionEnd = start + 1;
             e.preventDefault();
         }
+    });
+
+    // Clipboard paste support
+    input.addEventListener('paste', async (e) => {
+        const items = e.clipboardData.items;
+
+        // Check for images
+        for (let item of items) {
+            if (item.type.startsWith('image/')) {
+                e.preventDefault();
+                const file = item.getAsFile();
+
+                // Create a fake event object compatible with handleImageUpload
+                const fakeEvent = {
+                    target: {
+                        files: [file]
+                    }
+                };
+
+                handleImageUpload(fakeEvent);
+                addNotification('Info', 'Obrázek vložen ze schránky.');
+                return;
+            }
+        }
+
+        // For text, allow default paste behavior
     });
 
     // Load initial data

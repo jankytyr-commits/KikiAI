@@ -357,6 +357,8 @@ async function sendMessage() {
     const imageStatus = currentImage ? ' + 📷 Obrázek' : '';
     addNotification('Info', `Odesílám... (${userTokens} tokenů)${searchStatus}${imageStatus}`);
 
+    showTypingIndicator();
+
     try {
         const requestBody = {
             messages: conversationHistory,
@@ -421,6 +423,8 @@ async function sendMessage() {
         debugger; // 8. Network/Logic Error
         console.error('❌ Network/Logic Error:', e);
         addNotification('Error', 'Network Error: ' + e.message);
+    } finally {
+        hideTypingIndicator();
     }
 }
 
@@ -549,6 +553,9 @@ function selectModel(p) {
     currentProvider = p;
     updateImageButtonVisibility();
     addNotification('Info', `Přepnuto na: ${btn.querySelector('.modelName').textContent}`);
+
+    updateCompactModelBar(p);
+    closeModelSelector();
 }
 
 function updateImageButtonVisibility() {
@@ -606,35 +613,231 @@ function disableProvider(p, reason = 'Unavailable') {
 
 function exportChat() {
     if (conversationHistory.length === 0) {
-        addNotification('Warn', 'Žádné zprávy k exportu.');
+        addNotification('Warn', 'Žád né zprávy k exportu.');
         return;
     }
 
-    let content = `# ${currentSessionTitle}\n\n`;
-    content += `*Exportováno: ${new Date().toLocaleString()}*\n\n---\n\n`;
+    // Calculate statistics
+    const totalMessages = conversationHistory.length;
+    const userMessages = conversationHistory.filter(m => m.role === 'user').length;
+    const aiMessages = conversationHistory.filter(m => m.role === 'assistant').length;
+
+    // Build HTML content
+    let html = `<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${currentSessionTitle} - Export</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #121212;
+            color: #e0e0e0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #1a1a1a;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .metadata {
+            background: #252525;
+            padding: 20px 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            border-bottom: 1px solid #333;
+        }
+        .metadata-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .metadata-label {
+            font-size: 0.85em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .metadata-value {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #fff;
+        }
+        .chat {
+            padding: 30px;
+            min-height: 400px;
+        }
+        .message {
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+        .message-icon {
+            font-size: 1.5em;
+        }
+        .message-role {
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+        .message-model {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+        .message-time {
+            color: #888;
+            font-size: 0.85em;
+            margin-left: auto;
+        }
+        .message-content {
+            background: #252525;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-left: 35px;
+            border-left: 3px solid #667eea;
+        }
+        .message.user .message-content {
+            border-left-color: #4fc3f7;
+        }
+        .message-content pre {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .message-content code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .message-content p {
+            margin: 10px 0;
+        }
+        .message-content ul, .message-content ol {
+            margin-left: 20px;
+            margin: 10px 0 10px 20px;
+        }
+        .message-content blockquote {
+            border-left: 3px solid #667eea;
+            padding-left: 15px;
+            margin: 10px 0;
+            color: #aaa;
+        }
+        .footer {
+            background: #252525;
+            padding: 20px 30px;
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+            border-top: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 ${currentSessionTitle}</h1>
+            <p>Export konverzace z KikiAI</p>
+        </div>
+        <div class="metadata">
+            <div class="metadata-item">
+                <span class="metadata-label">Exportováno</span>
+                <span class="metadata-value">${new Date().toLocaleString('cs-CZ')}</span>
+            </div>
+            <div class="metadata-item">
+                <span class="metadata-label">Celkem zpráv</span>
+                <span class="metadata-value">${totalMessages}</span>
+            </div>
+            <div class="metadata-item">
+                <span class="metadata-label">Vaše zprávy</span>
+                <span class="metadata-value">${userMessages}</span>
+            </div>
+            <div class="metadata-item">
+                <span class="metadata-label">AI odpovědi</span>
+                <span class="metadata-value">${aiMessages}</span>
+            </div>
+        </div>
+        <div class="chat">
+`;
 
     conversationHistory.forEach(msg => {
-        const role = msg.role === 'user' ? '🧑‍💻 User' : '🤖 AI';
-        const model = msg.metadata?.model ? ` (${msg.metadata.model})` : '';
-        const time = msg.metadata?.timestamp ? ` - ${new Date(msg.metadata.timestamp).toLocaleTimeString()}` : '';
+        const isUser = msg.role === 'user';
+        const icon = isUser ? '🧑‍💻' : getModelIcon(msg.metadata?.model || 'gemini');
+        const role = isUser ? 'Uživatel' : 'AI';
+        const model = msg.metadata?.model || '';
+        const time = msg.metadata?.timestamp ? new Date(msg.metadata.timestamp).toLocaleString('cs-CZ') : '';
 
-        content += `## ${role}${model}${time}\n\n`;
-        content += `${msg.content}\n\n`;
-        content += `---\n\n`;
+        // Render markdown content to HTML
+        const renderedContent = marked.parse(msg.content);
+
+        html += `
+            <div class="message ${isUser ? 'user' : 'assistant'}">
+                <div class="message-header">
+                    <span class="message-icon">${icon}</span>
+                    <span class="message-role">${role}</span>
+                    ${model ? `<span class="message-model">${model}</span>` : ''}
+                    ${time ? `<span class="message-time">${time}</span>` : ''}
+                </div>
+                <div class="message-content">
+                    ${renderedContent}
+                </div>
+            </div>
+`;
     });
 
-    const blob = new Blob([content], { type: 'text/markdown' });
+    html += `
+        </div>
+        <div class="footer">
+            Generated by KikiAI Chat • ${new Date().getFullYear()}
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
 
     // Sanitize filename
     const safeTitle = currentSessionTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    a.download = `chat_${safeTitle}_${new Date().toISOString().slice(0, 10)}.md`;
+    a.download = `chat_${safeTitle}_${new Date().toISOString().slice(0, 10)}.html`;
 
     a.click();
     URL.revokeObjectURL(url);
-    addNotification('Success', 'Chat exportován jako Markdown.');
+    addNotification('Success', 'Chat exportován jako HTML.');
 }
 
 function importChat() {
@@ -1112,6 +1315,8 @@ async function sendChatRequest() {
     const userTokens = estimateTokens(lastMsg.content);
     addNotification('Info', `Regeneruji odpověď...`);
 
+    showTypingIndicator();
+
     try {
         const requestBody = {
             messages: conversationHistory,
@@ -1141,5 +1346,60 @@ async function sendChatRequest() {
         }
     } catch (e) {
         addNotification('Error', 'Network Error: ' + e.message);
+    } finally {
+        hideTypingIndicator();
     }
+}
+
+// ============================================
+// UI Helper Functions
+// ============================================
+
+function showTypingIndicator() {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) {
+        indicator.classList.add('visible');
+        const chat = document.getElementById('chat');
+        if (chat) chat.scrollTop = chat.scrollHeight;
+    }
+}
+
+function hideTypingIndicator() {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) {
+        indicator.classList.remove('visible');
+    }
+}
+
+function updateCompactModelBar(p) {
+    const btn = document.querySelector(`[data-provider="${p}"]`);
+    if (!btn) return;
+
+    const name = btn.querySelector('.modelName').textContent;
+    const stats = btn.querySelector('.modelStats').innerHTML;
+    const icon = getModelIcon(p);
+
+    const nameEl = document.getElementById('currentModelName');
+    const statsEl = document.getElementById('currentModelStats');
+    const iconEl = document.getElementById('currentModelIcon');
+
+    if (nameEl) nameEl.textContent = name;
+    if (statsEl) statsEl.innerHTML = stats;
+    if (iconEl) iconEl.textContent = icon;
+
+    const infoBtn = document.getElementById('compactInfoBtn');
+    const settingsBtn = document.getElementById('compactSettingsBtn');
+
+    if (infoBtn) infoBtn.onclick = () => showModelInfo(p);
+    if (settingsBtn) settingsBtn.onclick = () => openModelSettings(p);
+}
+
+function openModelSelector() {
+    const modal = document.getElementById('modelSelectorModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeModelSelector() {
+    const modal = document.getElementById('modelSelectorModal');
+    if (modal) modal.style.display = 'none';
 }
