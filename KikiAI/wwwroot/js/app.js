@@ -17,6 +17,8 @@ let currentSessionId = null;
 const tokenLimits = {
     'gemini': 1000000,
     'gemini-2.5': 1000000,
+    'gemini-2.0-flash-exp': 1000000,
+    'gemini-2.0-flash-thinking': 1000000,
     'openai': 128000,
     'openai-test': 128000,
     'claude': 200000,

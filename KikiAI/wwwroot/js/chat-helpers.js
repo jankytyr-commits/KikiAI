@@ -552,8 +552,8 @@ function selectModel(p) {
 }
 
 function updateImageButtonVisibility() {
-    const visionProviders = ['gemini', 'gemini-2.5', 'gemini-1.5-pro', 'gemini-1.5-flash', 'openai', 'openai-test', 'claude', 'claude-haiku'];
-    const fileProviders = ['gemini', 'gemini-2.5', 'gemini-1.5-pro', 'gemini-1.5-flash']; // Only Gemini supports PDF
+    const visionProviders = ['gemini', 'gemini-2.5', 'gemini-2.0-flash-exp', 'gemini-2.0-flash-thinking', 'gemini-1.5-pro', 'gemini-1.5-flash', 'openai', 'openai-test', 'claude', 'claude-haiku'];
+    const fileProviders = ['gemini', 'gemini-2.5', 'gemini-2.0-flash-exp', 'gemini-2.0-flash-thinking', 'gemini-1.5-pro', 'gemini-1.5-flash']; // Only Gemini supports PDF
 
     const imageBtn = document.getElementById('imageUpload');
     const fileBtn = document.getElementById('fileUpload');

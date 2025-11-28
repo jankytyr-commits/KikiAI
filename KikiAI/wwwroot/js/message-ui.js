@@ -17,6 +17,8 @@ function getModelIcon(model) {
     const icons = {
         'gemini': '✨',
         'gemini-2.5': '✨',
+        'gemini-2.0-flash-exp': '✨',
+        'gemini-2.0-flash-thinking': '🧠',
         'gemini-1.5-pro': '✨',
         'gemini-1.5-flash': '✨',
         'openai': '🤖',
@@ -34,6 +36,8 @@ function getModelColor(model) {
     const colors = {
         'gemini': '#4285f4',
         'gemini-2.5': '#4285f4',
+        'gemini-2.0-flash-exp': '#4285f4',
+        'gemini-2.0-flash-thinking': '#4285f4',
         'gemini-1.5-pro': '#4285f4',
         'gemini-1.5-flash': '#4285f4',
         'openai': '#10a37f',

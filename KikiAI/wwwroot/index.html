@@ -7,6 +7,7 @@
     <title>KikiAI Chat</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/style-inline-buttons.css">
+    <link rel="stylesheet" href="css/model-info.css">
     <!-- Highlight.js Theme -->
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -24,85 +25,139 @@
     </div>
 
     <div id="modelSelector">
+        <!-- Gemini Models -->
         <div class="modelItem">
             <button class="modelBtn active" data-provider="gemini" onclick="selectModel('gemini')">
                 <div class="modelName">Gemini 2.0 Flash</div>
-                <div class="modelStats"><span class="tokenUsage">0</span> / 1,000,000</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 1M</div>
             </button>
-            <button class="modelSettingsBtn" onclick="openModelSettings('gemini')"
-                title="Nastavení API klíčů">⚙️</button>
+            <div class="modelActions">
+                <button class="modelInfoBtn" onclick="showModelInfo('gemini')" title="Info">ℹ️</button>
+                <button class="modelSettingsBtn" onclick="openModelSettings('gemini')" title="API Key">⚙️</button>
+            </div>
+        </div>
+        <div class="modelItem">
+            <button class="modelBtn" data-provider="gemini-2.0-flash-exp" onclick="selectModel('gemini-2.0-flash-exp')">
+                <div class="modelName">Gemini 2.0 Flash (Exp)</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 1M</div>
+            </button>
+            <div class="modelActions">
+                <button class="modelInfoBtn" onclick="showModelInfo('gemini-2.0-flash-exp')" title="Info">ℹ️</button>
+                <button class="modelSettingsBtn" onclick="openModelSettings('gemini-2.0-flash-exp')"
+                    title="API Key">⚙️</button>
+            </div>
+        </div>
+        <div class="modelItem">
+            <button class="modelBtn" data-provider="gemini-2.0-flash-thinking"
+                onclick="selectModel('gemini-2.0-flash-thinking')">
+                <div class="modelName">Gemini 2.0 Thinking 🧠</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 32k</div>
+            </button>
+            <div class="modelActions">
+                <button class="modelInfoBtn" onclick="showModelInfo('gemini-2.0-flash-thinking')"
+                    title="Info">ℹ️</button>
+                <button class="modelSettingsBtn" onclick="openModelSettings('gemini-2.0-flash-thinking')"
+                    title="API Key">⚙️</button>
+            </div>
         </div>
         <div class="modelItem">
             <button class="modelBtn" data-provider="gemini-2.5" onclick="selectModel('gemini-2.5')">
-                <div class="modelName">Gemini 2.5 Flash</div>
-                <div class="modelStats"><span class="tokenUsage">0</span> / 1,000,000</div>
+                <div class="modelName">Gemini 1.5 Pro (Old)</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 2M</div>
             </button>
-            <button class="modelSettingsBtn" onclick="openModelSettings('gemini-2.5')"
-                title="Nastavení API klíčů">⚙️</button>
+            <div class="modelActions">
+                <button class="modelInfoBtn" onclick="showModelInfo('gemini-2.5')" title="Info">ℹ️</button>
+                <button class="modelSettingsBtn" onclick="openModelSettings('gemini-2.5')" title="API Key">⚙️</button>
+            </div>
         </div>
         <div class="modelItem">
             <button class="modelBtn" data-provider="gemini-1.5-pro" onclick="selectModel('gemini-1.5-pro')">
                 <div class="modelName">Gemini 1.5 Pro</div>
-                <div class="modelStats"><span class="tokenUsage">0</span> / 2,000,000</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 2M</div>
             </button>
-            <button class="modelSettingsBtn" onclick="openModelSettings('gemini-1.5-pro')"
-                title="Nastavení API klíčů">⚙️</button>
+            <div class="modelActions">
+                <button class="modelInfoBtn" onclick="showModelInfo('gemini-1.5-pro')" title="Info">ℹ️</button>
+                <button class="modelSettingsBtn" onclick="openModelSettings('gemini-1.5-pro')"
+                    title="API Key">⚙️</button>
+            </div>
         </div>
         <div class="modelItem">
             <button class="modelBtn" data-provider="gemini-1.5-flash" onclick="selectModel('gemini-1.5-flash')">
                 <div class="modelName">Gemini 1.5 Flash</div>
-                <div class="modelStats"><span class="tokenUsage">0</span> / 1,000,000</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 1M</div>
             </button>
-            <button class="modelSettingsBtn" onclick="openModelSettings('gemini-1.5-flash')"
-                title="Nastavení API klíčů">⚙️</button>
+            <div class="modelActions">
+                <button class="modelInfoBtn" onclick="showModelInfo('gemini-1.5-flash')" title="Info">ℹ️</button>
+                <button class="modelSettingsBtn" onclick="openModelSettings('gemini-1.5-flash')"
+                    title="API Key">⚙️</button>
+            </div>
         </div>
+
+        <!-- OpenAI Models -->
         <div class="modelItem">
             <button class="modelBtn disabled" data-provider="openai" disabled>
-                <div class="modelName">OpenAI GPT-4o</div>
+                <div class="modelName">GPT-4o</div>
                 <div class="modelStats">Quota Exceeded</div>
             </button>
-            <button class="modelSettingsBtn" onclick="openModelSettings('openai')"
-                title="Nastavení API klíčů">⚙️</button>
+            <div class="modelActions">
+                <button class="modelInfoBtn" onclick="showModelInfo('openai')" title="Info">ℹ️</button>
+                <button class="modelSettingsBtn" onclick="openModelSettings('openai')" title="API Key">⚙️</button>
+            </div>
         </div>
         <div class="modelItem">
             <button class="modelBtn" data-provider="openai-test" onclick="selectModel('openai-test')">
-                <div class="modelName">GPT-4o-mini</div>
-                <div class="modelStats"><span class="tokenUsage">0</span> / 128,000</div>
+                <div class="modelName">GPT-4o Mini</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 128k</div>
             </button>
-            <button class="modelSettingsBtn" onclick="openModelSettings('openai-test')"
-                title="Nastavení API klíčů">⚙️</button>
+            <div class="modelActions">
+                <button class="modelInfoBtn" onclick="showModelInfo('openai-test')" title="Info">ℹ️</button>
+                <button class="modelSettingsBtn" onclick="openModelSettings('openai-test')" title="API Key">⚙️</button>
+            </div>
         </div>
+
+        <!-- Claude Models -->
         <div class="modelItem">
             <button class="modelBtn" data-provider="claude" onclick="selectModel('claude')">
                 <div class="modelName">Claude 3 Haiku</div>
                 <div class="modelStats"><span class="tokenUsage">$0.00</span> / $0.25</div>
             </button>
-            <button class="modelSettingsBtn" onclick="openModelSettings('claude')"
-                title="Nastavení API klíčů">⚙️</button>
+            <div class="modelActions">
+                <button class="modelInfoBtn" onclick="showModelInfo('claude')" title="Info">ℹ️</button>
+                <button class="modelSettingsBtn" onclick="openModelSettings('claude')" title="API Key">⚙️</button>
+            </div>
         </div>
         <div class="modelItem">
             <button class="modelBtn" data-provider="claude-haiku" onclick="selectModel('claude-haiku')">
                 <div class="modelName">Claude 3.5 Haiku</div>
                 <div class="modelStats"><span class="tokenUsage">$0.00</span> / $1.00</div>
             </button>
-            <button class="modelSettingsBtn" onclick="openModelSettings('claude-haiku')"
-                title="Nastavení API klíčů">⚙️</button>
+            <div class="modelActions">
+                <button class="modelInfoBtn" onclick="showModelInfo('claude-haiku')" title="Info">ℹ️</button>
+                <button class="modelSettingsBtn" onclick="openModelSettings('claude-haiku')" title="API Key">⚙️</button>
+            </div>
         </div>
+
+        <!-- Mistral Models -->
         <div class="modelItem">
             <button class="modelBtn" data-provider="mistral" onclick="selectModel('mistral')">
                 <div class="modelName">Mistral Small</div>
-                <div class="modelStats"><span class="tokenUsage">0</span> / 32,000</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 32k</div>
             </button>
-            <button class="modelSettingsBtn" onclick="openModelSettings('mistral')"
-                title="Nastavení API klíčů">⚙️</button>
+            <div class="modelActions">
+                <button class="modelInfoBtn" onclick="showModelInfo('mistral')" title="Info">ℹ️</button>
+                <button class="modelSettingsBtn" onclick="openModelSettings('mistral')" title="API Key">⚙️</button>
+            </div>
         </div>
         <div class="modelItem">
             <button class="modelBtn" data-provider="mistral-large" onclick="selectModel('mistral-large')">
                 <div class="modelName">Mistral Large</div>
-                <div class="modelStats"><span class="tokenUsage">0</span> / 128,000</div>
+                <div class="modelStats"><span class="tokenUsage">0</span> / 128k</div>
             </button>
-            <button class="modelSettingsBtn" onclick="openModelSettings('mistral-large')"
-                title="Nastavení API klíčů">⚙️</button>
+            <div class="modelActions">
+                <button class="modelInfoBtn" onclick="showModelInfo('mistral-large')" title="Info">ℹ️</button>
+                <button class="modelSettingsBtn" onclick="openModelSettings('mistral-large')"
+                    title="API Key">⚙️</button>
+            </div>
         </div>
     </div>
 
@@ -156,9 +211,23 @@
         </div>
     </div>
 
+    <!-- Model Info Modal -->
+    <div id="modelInfoModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 id="modelInfoTitle">Model Info</h2>
+                <button class="closeModal" onclick="closeModelInfoModal()">×</button>
+            </div>
+            <div class="modal-body" id="modelInfoBody">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
+
     <script src="js/app.js?v=13"></script>
     <script src="js/message-ui.js?v=13"></script>
     <script src="js/chat-helpers.js?v=13"></script>
+    <script src="js/model-info.js?v=1"></script>
     <script src="js/html-preview.js?v=13"></script>
 </body>
 

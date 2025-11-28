@@ -62,6 +62,8 @@ builder.Services.AddSingleton<Func<string, IAIProvider>>(sp => key =>
         "openai-test" => new OpenAIProvider(httpFactory, GetKey("openai-test", "OpenAI:TestKey"), "gpt-4o-mini"),
         "gemini" => new GeminiProvider(httpFactory, GetKey("gemini", "Gemini:ApiKey"), "gemini-2.0-flash"),
         "gemini-2.5" => new GeminiProvider(httpFactory, GetKey("gemini-2.5", "Gemini:ApiKey"), "gemini-2.5-flash"),
+        "gemini-2.0-flash-exp" => new GeminiProvider(httpFactory, GetKey("gemini-2.0-flash-exp", "Gemini:ApiKey"), "gemini-2.0-flash-exp"),
+        "gemini-2.0-flash-thinking" => new GeminiProvider(httpFactory, GetKey("gemini-2.0-flash-thinking", "Gemini:ApiKey"), "gemini-2.0-flash-thinking-exp"),
         "gemini-1.5-pro" => new GeminiProvider(httpFactory, GetKey("gemini-1.5-pro", "Gemini:ApiKey"), "gemini-pro-latest"),
         "gemini-1.5-flash" => new GeminiProvider(httpFactory, GetKey("gemini-1.5-flash", "Gemini:ApiKey"), "gemini-flash-latest"),
         "claude" => new ClaudeProvider(httpFactory, GetKey("claude", "Claude:ApiKey"), "claude-3-haiku-20240307", sp.GetService<TavilyService>()),
@@ -134,6 +136,8 @@ using (var scope = app.Services.CreateScope())
 
     ImportKey("gemini", "Gemini:ApiKey", "Default Config Key");
     ImportKey("gemini-2.5", "Gemini:ApiKey", "Default Config Key");
+    ImportKey("gemini-2.0-flash-exp", "Gemini:ApiKey", "Default Config Key");
+    ImportKey("gemini-2.0-flash-thinking", "Gemini:ApiKey", "Default Config Key");
     ImportKey("gemini-1.5-pro", "Gemini:ApiKey", "Default Config Key");
     ImportKey("gemini-1.5-flash", "Gemini:ApiKey", "Default Config Key");
     ImportKey("openai", "OpenAI:ApiKey", "Default Config Key");
