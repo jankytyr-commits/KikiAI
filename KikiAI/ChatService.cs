@@ -46,6 +46,14 @@ public class ChatService
         if (!Directory.Exists(_chatsDir)) Directory.CreateDirectory(_chatsDir);
     }
 
+    private string GetChatDirectory(DateTime date)
+    {
+        var yearMonth = date.ToString("yyyy-MM");
+        var dir = Path.Combine(_chatsDir, yearMonth);
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        return dir;
+    }
+
     public async Task<ChatSession> GetCurrentSessionAsync()
     {
         if (File.Exists(_currentSessionFile))
@@ -67,15 +75,34 @@ public class ChatService
 
     public async Task<ChatSession?> LoadSessionAsync(string id)
     {
+        // Try root directory first (backward compatibility)
         var path = Path.Combine(_chatsDir, $"chat_{id}.json");
-        if (!File.Exists(path)) return null;
-        var json = await File.ReadAllTextAsync(path);
-        return JsonSerializer.Deserialize<ChatSession>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        if (File.Exists(path))
+        {
+            var json = await File.ReadAllTextAsync(path);
+            return JsonSerializer.Deserialize<ChatSession>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+
+        // Search in date-based subdirectories
+        var subdirs = Directory.GetDirectories(_chatsDir, "????-??");
+        foreach (var subdir in subdirs)
+        {
+            path = Path.Combine(subdir, $"chat_{id}.json");
+            if (File.Exists(path))
+            {
+                var json = await File.ReadAllTextAsync(path);
+                return JsonSerializer.Deserialize<ChatSession>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+        }
+
+        return null;
     }
 
     public async Task SaveSessionAsync(ChatSession session)
     {
-        var path = Path.Combine(_chatsDir, $"chat_{session.Id}.json");
+        // Use date-based directory
+        var dir = GetChatDirectory(session.CreatedAt);
+        var path = Path.Combine(dir, $"chat_{session.Id}.json");
         var json = JsonSerializer.Serialize(session, new JsonSerializerOptions { WriteIndented = true });
         await File.WriteAllTextAsync(path, json);
         // Ensure it's marked as current
@@ -109,11 +136,21 @@ public class ChatService
     public async Task<List<ChatSessionSummary>> GetAllSessionsAsync()
     {
         var summaries = new List<ChatSessionSummary>();
-        var chatFiles = Directory.GetFiles(_chatsDir, "chat_*.json")
-            .Where(f => !f.EndsWith("_disabled.json"))
-            .ToArray();
+        var allChatFiles = new List<string>();
 
-        foreach (var file in chatFiles)
+        // Get chats from root directory (backward compatibility)
+        allChatFiles.AddRange(Directory.GetFiles(_chatsDir, "chat_*.json")
+            .Where(f => !f.EndsWith("_disabled.json")));
+
+        // Get chats from date-based subdirectories
+        var subdirs = Directory.GetDirectories(_chatsDir, "????-??");
+        foreach (var subdir in subdirs)
+        {
+            allChatFiles.AddRange(Directory.GetFiles(subdir, "chat_*.json")
+                .Where(f => !f.EndsWith("_disabled.json")));
+        }
+
+        foreach (var file in allChatFiles)
         {
             try
             {

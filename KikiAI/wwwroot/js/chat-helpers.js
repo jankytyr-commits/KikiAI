@@ -195,25 +195,25 @@ function handleFileUpload(event) {
     }
 }
 
-async function startNewChat() {
-    if (confirm('Zahájit nový chat?')) {
-        try {
-            const r = await fetch('/api/chat/new', { method: 'POST' });
-            if (r.ok) {
-                const session = await r.json();
-                currentSessionId = session.id;
-                currentSessionTitle = 'Nový chat';
-                conversationHistory = [];
-                chatDiv.innerHTML = '';
-                totalTokens = 0;
-                lastUserMessage = '';
-                updateAllTokenDisplays();
-                addNotification('Info', 'Nový chat zahájen.');
-                loadSessions();
-            }
-        } catch (e) {
-            addNotification('Error', 'Chyba při vytváření nového chatu.');
+async function startNewChat(silent = false) {
+    if (!silent && !confirm('Zahájit nový chat?')) return;
+
+    try {
+        const r = await fetch('/api/chat/new', { method: 'POST' });
+        if (r.ok) {
+            const session = await r.json();
+            currentSessionId = session.id;
+            currentSessionTitle = 'Nový chat';
+            conversationHistory = [];
+            chatDiv.innerHTML = '';
+            totalTokens = 0;
+            lastUserMessage = '';
+            updateAllTokenDisplays();
+            if (!silent) addNotification('Info', 'Nový chat zahájen.');
+            loadSessions();
         }
+    } catch (e) {
+        addNotification('Error', 'Chyba při vytváření nového chatu.');
     }
 }
 
@@ -336,6 +336,11 @@ async function sendMessage() {
     debugger; // 1. Start of sendMessage
     const userInput = input.value.trim();
     if (!userInput && !currentImage) return;
+
+    // If no session exists, create one first (silent mode)
+    if (!currentSessionId) {
+        await startNewChat(true);
+    }
 
     lastUserMessage = userInput;
     const userTokens = estimateTokens(userInput);
