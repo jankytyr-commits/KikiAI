@@ -241,6 +241,8 @@
         </div>
         <div id="sidebar">
             <h3>Chats</h3>
+            <input id="chatSearch" type="text" placeholder="Hledat chat…" class="search-input"
+                oninput="filterChats()" />
             <ul id="sessions"></ul>
             <h3>Notifications</h3>
             <div id="notifications"></div>
@@ -252,7 +254,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Správa API klíčů</h2>
-                <button class="validateAllBtn" onclick="validateAllKeys()">🔄 Ověřit vše</button>
+                <button class="validateAllBtn" onclick="validateAllKeys()">🔄 Ověřit
+                    vše</button>
                 <button class="closeModal" onclick="closeApiKeysModal()">×</button>
             </div>
             <div class="modal-body">
@@ -280,11 +283,12 @@
         </div>
     </div>
 
-    <script src="js/app.js?v=13"></script>
-    <script src="js/message-ui.js?v=13"></script>
-    <script src="js/chat-helpers.js?v=13"></script>
-    <script src="js/model-info.js?v=1"></script>
-    <script src="js/html-preview.js?v=13"></script>
+    <script src="js/app.js?v=15"></script>
+    <script src="js/message-ui.js?v=15"></script>
+    <script src="js/chat-helpers.js?v=15"></script>
+    <script src="js/chat-search.js?v=15"></script>
+    <script src="js/model-info.js?v=15"></script>
+    <script src="js/html-preview.js?v=15"></script>
 </body>
 
 </html>

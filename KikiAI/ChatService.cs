@@ -175,6 +175,8 @@ public class ChatService
             }
         }
 
+        // Cleanup empty sessions before returning summaries
+        await CleanupEmptySessionsAsync();
         return summaries.OrderByDescending(s => s.CreatedAt).ToList();
     }
 
@@ -185,6 +187,45 @@ public class ChatService
         Directory.CreateDirectory(filesDir);
         return filesDir;
     }
+
+    // ---------------------------------------------------------------------
+    // Auto-cleanup of empty sessions
+    // ---------------------------------------------------------------------
+    private async Task CleanupEmptySessionsAsync()
+    {
+        // Retention period in days (default 1 day)
+        int retentionDays = 1;
+        var cutoff = DateTime.Now.AddDays(-retentionDays);
+        var allChatFiles = new List<string>();
+        // Root directory chats
+        allChatFiles.AddRange(Directory.GetFiles(_chatsDir, "chat_*.json")
+            .Where(f => !f.EndsWith("_disabled.json")));
+        // Date-based subdirectories
+        var subdirs = Directory.GetDirectories(_chatsDir, "????-??");
+        foreach (var subdir in subdirs)
+        {
+            allChatFiles.AddRange(Directory.GetFiles(subdir, "chat_*.json")
+                .Where(f => !f.EndsWith("_disabled.json")));
+        }
+        foreach (var file in allChatFiles)
+        {
+            try
+            {
+                var json = await File.ReadAllTextAsync(file);
+                var session = JsonSerializer.Deserialize<ChatSession>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (session != null && session.Messages.Count == 0 && session.CreatedAt < cutoff)
+                {
+                    // Delete the empty session file
+                    File.Delete(file);
+                }
+            }
+            catch
+            {
+                // ignore errors during cleanup
+            }
+        }
+    }
+
 
     public async Task<AttachedFile> SaveFileToSessionAsync(string sessionId, string fileName, byte[] fileData, string mimeType)
     {
