@@ -42,7 +42,7 @@ function renderSearchResults(results) {
     results.forEach(chat => {
         const li = document.createElement('li');
         li.className = 'session-item';
-        li.onclick = () => loadChat(chat.id); // loadChat is global in chat-helpers.js
+        li.onclick = () => loadSession(chat.id); // loadSession is global in chat-helpers.js
 
         // Main Title
         const titleDiv = document.createElement('div');
