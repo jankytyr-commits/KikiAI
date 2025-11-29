@@ -33,6 +33,16 @@ public class ChatController : ControllerBase
         return Ok(summaries);
     }
 
+    [HttpGet("search")]
+    public async Task<IActionResult> Search([FromQuery] string q)
+    {
+        if (string.IsNullOrWhiteSpace(q))
+            return Ok(new List<SearchResult>());
+
+        var results = await _chatService.SearchChatsAsync(q);
+        return Ok(results);
+    }
+
     [HttpGet("session/{id}")]
     public async Task<IActionResult> GetSession(string id)
     {

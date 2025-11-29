@@ -34,6 +34,14 @@ public class ChatSessionSummary
     public int MessageCount { get; set; }
 }
 
+public class SearchResult
+{
+    public string Id { get; set; }
+    public string Title { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public List<string> Snippets { get; set; } = new();
+}
+
 public class ChatService
 {
     private readonly string _chatsDir;
@@ -178,6 +186,89 @@ public class ChatService
         // Cleanup empty sessions before returning summaries
         await CleanupEmptySessionsAsync();
         return summaries.OrderByDescending(s => s.CreatedAt).ToList();
+    }
+
+    public async Task<List<SearchResult>> SearchChatsAsync(string query)
+    {
+        var results = new List<SearchResult>();
+        if (string.IsNullOrWhiteSpace(query)) return results;
+
+        query = query.ToLowerInvariant();
+        var allChatFiles = new List<string>();
+
+        // Root directory chats
+        allChatFiles.AddRange(Directory.GetFiles(_chatsDir, "chat_*.json")
+            .Where(f => !f.EndsWith("_disabled.json")));
+
+        // Date-based subdirectories
+        var subdirs = Directory.GetDirectories(_chatsDir, "????-??");
+        foreach (var subdir in subdirs)
+        {
+            allChatFiles.AddRange(Directory.GetFiles(subdir, "chat_*.json")
+                .Where(f => !f.EndsWith("_disabled.json")));
+        }
+
+        foreach (var file in allChatFiles)
+        {
+            try
+            {
+                var json = await File.ReadAllTextAsync(file);
+                var session = JsonSerializer.Deserialize<ChatSession>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                
+                if (session == null) continue;
+
+                var matches = new List<string>();
+                bool titleMatch = (session.Title ?? "").ToLowerInvariant().Contains(query);
+                
+                // If title matches, add a generic snippet
+                if (titleMatch)
+                {
+                    matches.Add($"Nalezeno v názvu: {session.Title}");
+                }
+
+                // Search in messages
+                foreach (var msg in session.Messages)
+                {
+                    if (string.IsNullOrEmpty(msg.Content)) continue;
+                    
+                    var contentLower = msg.Content.ToLowerInvariant();
+                    var index = contentLower.IndexOf(query);
+                    
+                    if (index >= 0)
+                    {
+                        // Create snippet
+                        int start = Math.Max(0, index - 40);
+                        int length = Math.Min(msg.Content.Length - start, 100); // Take up to 100 chars
+                        
+                        var snippet = msg.Content.Substring(start, length);
+                        if (start > 0) snippet = "..." + snippet;
+                        if (start + length < msg.Content.Length) snippet += "...";
+                        
+                        matches.Add(snippet);
+                        
+                        // Limit snippets per chat to avoid clutter
+                        if (matches.Count >= 3) break;
+                    }
+                }
+
+                if (matches.Count > 0)
+                {
+                    results.Add(new SearchResult
+                    {
+                        Id = session.Id,
+                        Title = session.Title ?? "Nový chat",
+                        CreatedAt = session.CreatedAt,
+                        Snippets = matches
+                    });
+                }
+            }
+            catch
+            {
+                // Ignore read errors
+            }
+        }
+
+        return results.OrderByDescending(r => r.CreatedAt).ToList();
     }
 
     public string GetSessionFilesDirectory(string sessionId)
