@@ -4,8 +4,45 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KikiAI Chat</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>KikiAI Chat (Nexus)</title>
+
+    <!-- Nexus Portal Resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Cormorant Garamond"', 'serif'],
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        display: ['"Cinzel Decorative"', 'cursive'],
+                        mono: ['"Cormorant Garamond"', 'serif'],
+                    },
+                    colors: {
+                        cosmic: {
+                            void: '#020410',
+                            gold: '#fbbf24',
+                            teal: '#2dd4bf',
+                            pink: '#f472b6',
+                            purple: '#c084fc',
+                            glass: 'rgba(255, 255, 255, 0.05)',
+                            'glass-border': 'rgba(255, 255, 255, 0.1)',
+                        }
+                    },
+                    backgroundImage: {
+                        'glass-gradient': "linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)",
+                    }
+                },
+            },
+        }
+    </script>
+
+    <link rel="stylesheet" href="css/style.css?v=nexus1">
     <link rel="stylesheet" href="css/style-inline-buttons.css">
     <link rel="stylesheet" href="css/model-info.css">
     <link rel="stylesheet" href="css/ui-improvements.css">
@@ -18,192 +55,315 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 
-<body>
-    <div id="menuBar">
-        <button class="menuBtn" onclick="repeatLast()">🔄 Zopakovat předchozí</button>
-        <button class="menuBtn" onclick="startNewChat()">➕ Nový chat</button>
-        <button class="menuBtn" onclick="exportChat()">💾 Exportovat chat</button>
-        <button class="menuBtn" onclick="importChat()">📥 Importovat chat</button>
+<body class="bg-[#020410] text-white overflow-hidden font-sans h-screen flex flex-col">
+
+    <!-- Star Map Background -->
+    <div class="absolute top-0 left-0 w-full h-full z-0 pointer-events-none">
+        <canvas id="star-canvas" class="w-full h-full opacity-60"></canvas>
     </div>
 
-    <!-- Compact Model Bar -->
-    <div id="compactModelBar">
-        <div class="current-model-info" onclick="openModelSelector()" title="Klikněte pro změnu modelu">
-            <span id="currentModelIcon">✨</span>
-            <span id="currentModelName">Gemini 1.5 Flash</span>
-            <span id="currentModelStats" class="tokenUsage">0 / 1M</span>
+    <!-- Main App Container -->
+    <div class="relative z-10 w-full h-full flex flex-col">
+
+        <!-- Menu Bar -->
+        <div id="menuBar" class="glass-panel border-b border-white/10 p-2 flex gap-2 items-center z-20">
+            <h1
+                class="text-xl font-display text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-pink-300 mr-4 ml-2">
+                KikiAI</h1>
+            <button class="menuBtn nexus-btn-small" onclick="repeatLast()">🔄 Zopakovat</button>
+            <button class="menuBtn nexus-btn-small" onclick="startNewChat()">➕ Nový chat</button>
+            <button class="menuBtn nexus-btn-small" onclick="exportChat()">💾 Export</button>
+            <button class="menuBtn nexus-btn-small" onclick="importChat()">📥 Import</button>
         </div>
-        <div class="compact-actions">
-            <button class="modelInfoBtn" id="compactInfoBtn" onclick="showModelInfo('gemini')" title="Info">ℹ️</button>
-            <button class="modelSettingsBtn" id="compactSettingsBtn" onclick="openModelSettings('gemini')"
-                title="API Key">⚙️</button>
-            <button class="changeModelBtn" onclick="openModelSelector()">Vyměnit model</button>
+
+        <!-- Compact Model Bar -->
+        <div id="compactModelBar"
+            class="glass-panel border-b border-white/10 p-2 flex justify-between items-center z-20 bg-white/5">
+            <div class="current-model-info flex items-center gap-3 cursor-pointer hover:bg-white/5 p-2 rounded transition-colors"
+                onclick="openModelSelector()" title="Klikněte pro změnu modelu">
+                <span id="currentModelIcon" class="text-2xl">✨</span>
+                <div>
+                    <div id="currentModelName" class="font-bold text-cosmic-teal">Gemini 1.5 Flash</div>
+                    <div id="currentModelStats" class="tokenUsage text-xs text-gray-400">0 / 1M</div>
+                </div>
+            </div>
+            <div class="compact-actions flex gap-2">
+                <button class="modelInfoBtn nexus-btn-icon" id="compactInfoBtn" onclick="showModelInfo('gemini')"
+                    title="Info">ℹ️</button>
+                <button class="modelSettingsBtn nexus-btn-icon" id="compactSettingsBtn"
+                    onclick="openModelSettings('gemini')" title="API Key">⚙️</button>
+                <button class="changeModelBtn nexus-btn-small bg-cosmic-teal/20 text-cosmic-teal border-cosmic-teal/50"
+                    onclick="openModelSelector()">Vyměnit model</button>
+            </div>
+        </div>
+
+        <div id="mainContent" class="flex-1 flex overflow-hidden">
+            <!-- Chat Area -->
+            <div id="chatArea" class="flex-1 flex flex-col relative">
+                <div id="chat" class="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4"></div>
+
+                <!-- Typing Indicator Container -->
+                <div id="typingIndicator"
+                    class="typing-indicator glass-panel mx-4 mb-2 rounded-lg border-l-4 border-cosmic-teal">
+                    <div class="typing-dot bg-cosmic-teal"></div>
+                    <div class="typing-dot bg-cosmic-teal"></div>
+                    <div class="typing-dot bg-cosmic-teal"></div>
+                </div>
+
+                <div id="inputArea" class="glass-panel border-t border-white/10 p-4 flex gap-3 items-end bg-black/40">
+                    <div class="inputControls flex flex-col gap-2">
+                        <button id="searchToggle" class="iconBtn nexus-btn-icon" onclick="toggleSearch()"
+                            title="Hledat na webu (Tavily)">🌐</button>
+                        <button id="imageUpload" class="iconBtn nexus-btn-icon"
+                            onclick="document.getElementById('imageInput').click()" title="Nahrát obrázek">📷</button>
+                        <button id="fileUpload" class="iconBtn nexus-btn-icon"
+                            onclick="document.getElementById('fileInput').click()"
+                            title="Připojit soubor (PDF, kód, XML...)" style="display:none;">📎</button>
+                        <input type="file" id="imageInput" accept="image/*" style="display:none"
+                            onchange="handleImageUpload(event)">
+                        <input type="file" id="fileInput"
+                            accept=".pdf,.txt,.cs,.js,.ts,.py,.java,.cpp,.c,.h,.xml,.json,.html,.css,.md,.sql,.sh,.bat,.ps1,image/*"
+                            style="display:none" onchange="handleFileUpload(event)">
+                    </div>
+                    <div class="flex-1 flex flex-col gap-2">
+                        <div id="imagePreview" style="display:none;"
+                            class="rounded border border-white/10 overflow-hidden w-fit"></div>
+                        <textarea id="input" rows="3" placeholder="Zadejte zprávu... (Ctrl+Enter pro odeslání)"
+                            class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-cosmic-teal/50 resize-none custom-scrollbar"></textarea>
+                    </div>
+                    <button id="send"
+                        class="nexus-btn-small bg-cosmic-teal/20 text-cosmic-teal border-cosmic-teal/50 h-10 px-6 hover:bg-cosmic-teal/30">Odeslat</button>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div id="sidebar"
+                class="w-80 glass-panel border-l border-white/10 flex flex-col bg-black/20 backdrop-blur-md">
+                <div class="p-4 border-b border-white/10">
+                    <h3 class="font-display text-cosmic-gold mb-2">Historie Chatů</h3>
+                    <input id="chatSearch" type="text" placeholder="Hledat chat…"
+                        class="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-sm focus:border-cosmic-teal/50 outline-none"
+                        oninput="filterChats()" />
+                </div>
+                <ul id="sessions" class="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-1"></ul>
+                <div class="p-4 border-t border-white/10">
+                    <h3 class="font-display text-cosmic-pink mb-2">Notifikace</h3>
+                    <div id="notifications" class="space-y-2 text-sm"></div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Modals (Glass Cards) -->
 
     <!-- Model Selector Modal -->
     <div id="modelSelectorModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Vyberte model</h2>
-                <button class="closeModal" onclick="closeModelSelector()">×</button>
+        <div class="modal-content glass-card">
+            <div class="modal-header border-b border-white/10 pb-4 mb-4 flex justify-between items-center">
+                <h2 class="font-display text-xl text-cosmic-teal">Vyberte model</h2>
+                <button class="closeModal text-red-400 hover:text-red-300 text-2xl"
+                    onclick="closeModelSelector()">×</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body custom-scrollbar max-h-[70vh] overflow-y-auto pr-2">
                 <!-- Google Gemini Group -->
-                <div class="provider-group">
-                    <div class="provider-label">Google Gemini</div>
-                    <div class="provider-models">
-                        <div class="modelItem">
-                            <button class="modelBtn" data-provider="gemini" onclick="selectModel('gemini')">
-                                <div class="modelName">Gemini 2.0 Flash</div>
-                                <div class="modelStats"><span class="tokenUsage">0</span> / 1M</div>
+                <div class="provider-group mb-6">
+                    <div
+                        class="provider-label text-xs uppercase tracking-widest text-gray-400 border-b border-white/10 mb-3 pb-1">
+                        Google Gemini</div>
+                    <div class="provider-models grid grid-cols-1 gap-2">
+                        <!-- Models will be styled by CSS, structure preserved -->
+                        <div
+                            class="modelItem flex items-center gap-2 bg-white/5 p-2 rounded border border-white/5 hover:border-cosmic-teal/30 transition-colors">
+                            <button class="modelBtn flex-1 text-left" data-provider="gemini"
+                                onclick="selectModel('gemini')">
+                                <div class="modelName font-bold text-white">Gemini 2.0 Flash</div>
+                                <div class="modelStats text-xs text-gray-400"><span
+                                        class="tokenUsage text-cosmic-teal">0</span> / 1M</div>
                             </button>
-                            <div class="modelActions">
-                                <button class="modelInfoBtn" onclick="showModelInfo('gemini')" title="Info">ℹ️</button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('gemini')"
-                                    title="API Key">⚙️</button>
+                            <div class="modelActions flex gap-1">
+                                <button class="modelInfoBtn nexus-btn-icon w-8 h-8" onclick="showModelInfo('gemini')"
+                                    title="Info">ℹ️</button>
+                                <button class="modelSettingsBtn nexus-btn-icon w-8 h-8"
+                                    onclick="openModelSettings('gemini')" title="API Key">⚙️</button>
                             </div>
                         </div>
-                        <div class="modelItem">
-                            <button class="modelBtn" data-provider="gemini-2.0-flash-exp"
+
+                        <div
+                            class="modelItem flex items-center gap-2 bg-white/5 p-2 rounded border border-white/5 hover:border-cosmic-teal/30 transition-colors">
+                            <button class="modelBtn flex-1 text-left" data-provider="gemini-2.0-flash-exp"
                                 onclick="selectModel('gemini-2.0-flash-exp')">
-                                <div class="modelName">Gemini 2.0 Flash (Exp)</div>
-                                <div class="modelStats"><span class="tokenUsage">0</span> / 1M</div>
+                                <div class="modelName font-bold text-white">Gemini 2.0 Flash (Exp)</div>
+                                <div class="modelStats text-xs text-gray-400"><span
+                                        class="tokenUsage text-cosmic-teal">0</span> / 1M</div>
                             </button>
-                            <div class="modelActions">
-                                <button class="modelInfoBtn" onclick="showModelInfo('gemini-2.0-flash-exp')"
-                                    title="Info">ℹ️</button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('gemini-2.0-flash-exp')"
-                                    title="API Key">⚙️</button>
+                            <div class="modelActions flex gap-1">
+                                <button class="modelInfoBtn nexus-btn-icon w-8 h-8"
+                                    onclick="showModelInfo('gemini-2.0-flash-exp')" title="Info">ℹ️</button>
+                                <button class="modelSettingsBtn nexus-btn-icon w-8 h-8"
+                                    onclick="openModelSettings('gemini-2.0-flash-exp')" title="API Key">⚙️</button>
                             </div>
                         </div>
-                        <div class="modelItem">
-                            <button class="modelBtn" data-provider="gemini-2.0-flash-thinking"
+
+                        <div
+                            class="modelItem flex items-center gap-2 bg-white/5 p-2 rounded border border-white/5 hover:border-cosmic-teal/30 transition-colors">
+                            <button class="modelBtn flex-1 text-left" data-provider="gemini-2.0-flash-thinking"
                                 onclick="selectModel('gemini-2.0-flash-thinking')">
-                                <div class="modelName">Gemini 2.0 Thinking 🧠</div>
-                                <div class="modelStats"><span class="tokenUsage">0</span> / 32k</div>
+                                <div class="modelName font-bold text-white">Gemini 2.0 Thinking 🧠</div>
+                                <div class="modelStats text-xs text-gray-400"><span
+                                        class="tokenUsage text-cosmic-teal">0</span> / 32k</div>
                             </button>
-                            <div class="modelActions">
-                                <button class="modelInfoBtn" onclick="showModelInfo('gemini-2.0-flash-thinking')"
-                                    title="Info">ℹ️</button>
-                                <button class="modelSettingsBtn"
+                            <div class="modelActions flex gap-1">
+                                <button class="modelInfoBtn nexus-btn-icon w-8 h-8"
+                                    onclick="showModelInfo('gemini-2.0-flash-thinking')" title="Info">ℹ️</button>
+                                <button class="modelSettingsBtn nexus-btn-icon w-8 h-8"
                                     onclick="openModelSettings('gemini-2.0-flash-thinking')" title="API Key">⚙️</button>
                             </div>
                         </div>
-                        <div class="modelItem">
-                            <button class="modelBtn" data-provider="gemini-2.5" onclick="selectModel('gemini-2.5')">
-                                <div class="modelName">Gemini 1.5 Pro (Old)</div>
-                                <div class="modelStats"><span class="tokenUsage">0</span> / 2M</div>
+
+                        <div
+                            class="modelItem flex items-center gap-2 bg-white/5 p-2 rounded border border-white/5 hover:border-cosmic-teal/30 transition-colors">
+                            <button class="modelBtn flex-1 text-left" data-provider="gemini-2.5"
+                                onclick="selectModel('gemini-2.5')">
+                                <div class="modelName font-bold text-white">Gemini 1.5 Pro (Old)</div>
+                                <div class="modelStats text-xs text-gray-400"><span
+                                        class="tokenUsage text-cosmic-teal">0</span> / 2M</div>
                             </button>
-                            <div class="modelActions">
-                                <button class="modelInfoBtn" onclick="showModelInfo('gemini-2.5')"
-                                    title="Info">ℹ️</button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('gemini-2.5')"
-                                    title="API Key">⚙️</button>
+                            <div class="modelActions flex gap-1">
+                                <button class="modelInfoBtn nexus-btn-icon w-8 h-8"
+                                    onclick="showModelInfo('gemini-2.5')" title="Info">ℹ️</button>
+                                <button class="modelSettingsBtn nexus-btn-icon w-8 h-8"
+                                    onclick="openModelSettings('gemini-2.5')" title="API Key">⚙️</button>
                             </div>
                         </div>
-                        <div class="modelItem">
-                            <button class="modelBtn" data-provider="gemini-1.5-pro"
+
+                        <div
+                            class="modelItem flex items-center gap-2 bg-white/5 p-2 rounded border border-white/5 hover:border-cosmic-teal/30 transition-colors">
+                            <button class="modelBtn flex-1 text-left" data-provider="gemini-1.5-pro"
                                 onclick="selectModel('gemini-1.5-pro')">
-                                <div class="modelName">Gemini 1.5 Pro</div>
-                                <div class="modelStats"><span class="tokenUsage">0</span> / 2M</div>
+                                <div class="modelName font-bold text-white">Gemini 1.5 Pro</div>
+                                <div class="modelStats text-xs text-gray-400"><span
+                                        class="tokenUsage text-cosmic-teal">0</span> / 2M</div>
                             </button>
-                            <div class="modelActions">
-                                <button class="modelInfoBtn" onclick="showModelInfo('gemini-1.5-pro')"
-                                    title="Info">ℹ️</button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('gemini-1.5-flash')"
-                                    title="API Key">⚙️</button>
+                            <div class="modelActions flex gap-1">
+                                <button class="modelInfoBtn nexus-btn-icon w-8 h-8"
+                                    onclick="showModelInfo('gemini-1.5-pro')" title="Info">ℹ️</button>
+                                <button class="modelSettingsBtn nexus-btn-icon w-8 h-8"
+                                    onclick="openModelSettings('gemini-1.5-flash')" title="API Key">⚙️</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- OpenAI Group -->
-                <div class="provider-group">
-                    <div class="provider-label">OpenAI</div>
-                    <div class="provider-models">
-                        <div class="modelItem">
-                            <button class="modelBtn disabled" data-provider="openai" disabled>
-                                <div class="modelName">GPT-4o</div>
-                                <div class="modelStats">Quota Exceeded</div>
+                <div class="provider-group mb-6">
+                    <div
+                        class="provider-label text-xs uppercase tracking-widest text-gray-400 border-b border-white/10 mb-3 pb-1">
+                        OpenAI</div>
+                    <div class="provider-models grid grid-cols-1 gap-2">
+                        <div
+                            class="modelItem flex items-center gap-2 bg-white/5 p-2 rounded border border-white/5 opacity-50">
+                            <button class="modelBtn flex-1 text-left disabled" data-provider="openai" disabled>
+                                <div class="modelName font-bold text-white">GPT-4o</div>
+                                <div class="modelStats text-xs text-red-400">Quota Exceeded</div>
                             </button>
-                            <div class="modelActions">
-                                <button class="modelInfoBtn" onclick="showModelInfo('openai')" title="Info">ℹ️</button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('openai')"
-                                    title="API Key">⚙️</button>
+                            <div class="modelActions flex gap-1">
+                                <button class="modelInfoBtn nexus-btn-icon w-8 h-8" onclick="showModelInfo('openai')"
+                                    title="Info">ℹ️</button>
+                                <button class="modelSettingsBtn nexus-btn-icon w-8 h-8"
+                                    onclick="openModelSettings('openai')" title="API Key">⚙️</button>
                             </div>
                         </div>
-                        <div class="modelItem">
-                            <button class="modelBtn" data-provider="openai-test" onclick="selectModel('openai-test')">
-                                <div class="modelName">GPT-4o Mini</div>
-                                <div class="modelStats"><span class="tokenUsage">0</span> / 128k</div>
+                        <div
+                            class="modelItem flex items-center gap-2 bg-white/5 p-2 rounded border border-white/5 hover:border-cosmic-teal/30 transition-colors">
+                            <button class="modelBtn flex-1 text-left" data-provider="openai-test"
+                                onclick="selectModel('openai-test')">
+                                <div class="modelName font-bold text-white">GPT-4o Mini</div>
+                                <div class="modelStats text-xs text-gray-400"><span
+                                        class="tokenUsage text-cosmic-teal">0</span> / 128k</div>
                             </button>
-                            <div class="modelActions">
-                                <button class="modelInfoBtn" onclick="showModelInfo('openai-test')"
-                                    title="Info">ℹ️</button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('openai-test')"
-                                    title="API Key">⚙️</button>
+                            <div class="modelActions flex gap-1">
+                                <button class="modelInfoBtn nexus-btn-icon w-8 h-8"
+                                    onclick="showModelInfo('openai-test')" title="Info">ℹ️</button>
+                                <button class="modelSettingsBtn nexus-btn-icon w-8 h-8"
+                                    onclick="openModelSettings('openai-test')" title="API Key">⚙️</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Anthropic Claude Group -->
-                <div class="provider-group">
-                    <div class="provider-label">Anthropic Claude</div>
-                    <div class="provider-models">
-                        <div class="modelItem">
-                            <button class="modelBtn" data-provider="claude" onclick="selectModel('claude')">
-                                <div class="modelName">Claude 3 Haiku</div>
-                                <div class="modelStats"><span class="tokenUsage">$0.00</span> / $0.25</div>
+                <div class="provider-group mb-6">
+                    <div
+                        class="provider-label text-xs uppercase tracking-widest text-gray-400 border-b border-white/10 mb-3 pb-1">
+                        Anthropic Claude</div>
+                    <div class="provider-models grid grid-cols-1 gap-2">
+                        <div
+                            class="modelItem flex items-center gap-2 bg-white/5 p-2 rounded border border-white/5 hover:border-cosmic-teal/30 transition-colors">
+                            <button class="modelBtn flex-1 text-left" data-provider="claude"
+                                onclick="selectModel('claude')">
+                                <div class="modelName font-bold text-white">Claude 3 Haiku</div>
+                                <div class="modelStats text-xs text-gray-400"><span
+                                        class="tokenUsage text-cosmic-teal">$0.00</span> / $0.25</div>
                             </button>
-                            <div class="modelActions">
-                                <button class="modelInfoBtn" onclick="showModelInfo('claude')" title="Info">ℹ️</button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('claude')"
-                                    title="API Key">⚙️</button>
+                            <div class="modelActions flex gap-1">
+                                <button class="modelInfoBtn nexus-btn-icon w-8 h-8" onclick="showModelInfo('claude')"
+                                    title="Info">ℹ️</button>
+                                <button class="modelSettingsBtn nexus-btn-icon w-8 h-8"
+                                    onclick="openModelSettings('claude')" title="API Key">⚙️</button>
                             </div>
                         </div>
-                        <div class="modelItem">
-                            <button class="modelBtn" data-provider="claude-haiku" onclick="selectModel('claude-haiku')">
-                                <div class="modelName">Claude 3.5 Haiku</div>
-                                <div class="modelStats"><span class="tokenUsage">$0.00</span> / $1.00</div>
+                        <div
+                            class="modelItem flex items-center gap-2 bg-white/5 p-2 rounded border border-white/5 hover:border-cosmic-teal/30 transition-colors">
+                            <button class="modelBtn flex-1 text-left" data-provider="claude-haiku"
+                                onclick="selectModel('claude-haiku')">
+                                <div class="modelName font-bold text-white">Claude 3.5 Haiku</div>
+                                <div class="modelStats text-xs text-gray-400"><span
+                                        class="tokenUsage text-cosmic-teal">$0.00</span> / $1.00</div>
                             </button>
-                            <div class="modelActions">
-                                <button class="modelInfoBtn" onclick="showModelInfo('claude-haiku')"
-                                    title="Info">ℹ️</button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('claude-haiku')"
-                                    title="API Key">⚙️</button>
+                            <div class="modelActions flex gap-1">
+                                <button class="modelInfoBtn nexus-btn-icon w-8 h-8"
+                                    onclick="showModelInfo('claude-haiku')" title="Info">ℹ️</button>
+                                <button class="modelSettingsBtn nexus-btn-icon w-8 h-8"
+                                    onclick="openModelSettings('claude-haiku')" title="API Key">⚙️</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Mistral AI Group -->
-                <div class="provider-group">
-                    <div class="provider-label">Mistral AI</div>
-                    <div class="provider-models">
-                        <div class="modelItem">
-                            <button class="modelBtn" data-provider="mistral" onclick="selectModel('mistral')">
-                                <div class="modelName">Mistral Small</div>
-                                <div class="modelStats"><span class="tokenUsage">0</span> / 32k</div>
+                <div class="provider-group mb-6">
+                    <div
+                        class="provider-label text-xs uppercase tracking-widest text-gray-400 border-b border-white/10 mb-3 pb-1">
+                        Mistral AI</div>
+                    <div class="provider-models grid grid-cols-1 gap-2">
+                        <div
+                            class="modelItem flex items-center gap-2 bg-white/5 p-2 rounded border border-white/5 hover:border-cosmic-teal/30 transition-colors">
+                            <button class="modelBtn flex-1 text-left" data-provider="mistral"
+                                onclick="selectModel('mistral')">
+                                <div class="modelName font-bold text-white">Mistral Small</div>
+                                <div class="modelStats text-xs text-gray-400"><span
+                                        class="tokenUsage text-cosmic-teal">0</span> / 32k</div>
                             </button>
-                            <div class="modelActions">
-                                <button class="modelInfoBtn" onclick="showModelInfo('mistral')" title="Info">ℹ️</button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('mistral')"
-                                    title="API Key">⚙️</button>
+                            <div class="modelActions flex gap-1">
+                                <button class="modelInfoBtn nexus-btn-icon w-8 h-8" onclick="showModelInfo('mistral')"
+                                    title="Info">ℹ️</button>
+                                <button class="modelSettingsBtn nexus-btn-icon w-8 h-8"
+                                    onclick="openModelSettings('mistral')" title="API Key">⚙️</button>
                             </div>
                         </div>
-                        <div class="modelItem">
-                            <button class="modelBtn" data-provider="mistral-large"
+                        <div
+                            class="modelItem flex items-center gap-2 bg-white/5 p-2 rounded border border-white/5 hover:border-cosmic-teal/30 transition-colors">
+                            <button class="modelBtn flex-1 text-left" data-provider="mistral-large"
                                 onclick="selectModel('mistral-large')">
-                                <div class="modelName">Mistral Large</div>
-                                <div class="modelStats"><span class="tokenUsage">0</span> / 128k</div>
+                                <div class="modelName font-bold text-white">Mistral Large</div>
+                                <div class="modelStats text-xs text-gray-400"><span
+                                        class="tokenUsage text-cosmic-teal">0</span> / 128k</div>
                             </button>
-                            <div class="modelActions">
-                                <button class="modelInfoBtn" onclick="showModelInfo('mistral-large')"
-                                    title="Info">ℹ️</button>
-                                <button class="modelSettingsBtn" onclick="openModelSettings('mistral-large')"
-                                    title="API Key">⚙️</button>
+                            <div class="modelActions flex gap-1">
+                                <button class="modelInfoBtn nexus-btn-icon w-8 h-8"
+                                    onclick="showModelInfo('mistral-large')" title="Info">ℹ️</button>
+                                <button class="modelSettingsBtn nexus-btn-icon w-8 h-8"
+                                    onclick="openModelSettings('mistral-large')" title="API Key">⚙️</button>
                             </div>
                         </div>
                     </div>
@@ -212,60 +372,27 @@
         </div>
     </div>
 
-    <div id="mainContent">
-        <div id="chatArea">
-            <div id="chat"></div>
-            <!-- Typing Indicator Container -->
-            <div id="typingIndicator" class="typing-indicator">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-            <div id="inputArea">
-                <div class="inputControls">
-                    <button id="searchToggle" class="iconBtn" onclick="toggleSearch()"
-                        title="Hledat na webu (Tavily)">🌐</button>
-                    <button id="imageUpload" class="iconBtn" onclick="document.getElementById('imageInput').click()"
-                        title="Nahrát obrázek">📷</button>
-                    <button id="fileUpload" class="iconBtn" onclick="document.getElementById('fileInput').click()"
-                        title="Připojit soubor (PDF, kód, XML...)" style="display:none;">📎</button>
-                    <input type="file" id="imageInput" accept="image/*" style="display:none"
-                        onchange="handleImageUpload(event)">
-                    <input type="file" id="fileInput"
-                        accept=".pdf,.txt,.cs,.js,.ts,.py,.java,.cpp,.c,.h,.xml,.json,.html,.css,.md,.sql,.sh,.bat,.ps1,image/*"
-                        style="display:none" onchange="handleFileUpload(event)">
-                </div>
-                <div id="imagePreview" style="display:none; margin-bottom: 8px;"></div>
-                <textarea id="input" rows="3" placeholder="Zadejte zprávu... (Ctrl+Enter pro odeslání)"></textarea>
-                <button id="send">Odeslat</button>
-            </div>
-        </div>
-        <div id="sidebar">
-            <h3>Chats</h3>
-            <input id="chatSearch" type="text" placeholder="Hledat chat…" class="search-input"
-                oninput="filterChats()" />
-            <ul id="sessions"></ul>
-            <h3>Notifications</h3>
-            <div id="notifications"></div>
-        </div>
-    </div>
-
     <!-- API Keys Management Modal -->
     <div id="apiKeysModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Správa API klíčů</h2>
-                <button class="validateAllBtn" onclick="validateAllKeys()">🔄 Ověřit
-                    vše</button>
-                <button class="closeModal" onclick="closeApiKeysModal()">×</button>
+        <div class="modal-content glass-card">
+            <div class="modal-header border-b border-white/10 pb-4 mb-4 flex justify-between items-center">
+                <h2 id="modalTitle" class="font-display text-xl text-cosmic-gold">Správa API klíčů</h2>
+                <div class="flex gap-2">
+                    <button class="validateAllBtn nexus-btn-small" onclick="validateAllKeys()">🔄 Ověřit vše</button>
+                    <button class="closeModal text-red-400 hover:text-red-300 text-2xl"
+                        onclick="closeApiKeysModal()">×</button>
+                </div>
             </div>
             <div class="modal-body">
-                <div id="keysList"></div>
-                <div class="add-key-section">
-                    <h3>Přidat nový klíč</h3>
-                    <input type="text" id="newKeyAlias" placeholder="Název klíče (např. 'Hlavní klíč')" />
-                    <input type="text" id="newKeyValue" placeholder="API klíč" />
-                    <button onclick="addNewApiKey()">Přidat</button>
+                <div id="keysList" class="space-y-2"></div>
+                <div class="add-key-section mt-6 pt-4 border-t border-white/10">
+                    <h3 class="font-display text-cosmic-teal mb-2">Přidat nový klíč</h3>
+                    <input type="text" id="newKeyAlias" placeholder="Název klíče (např. 'Hlavní klíč')"
+                        class="w-full bg-white/5 border border-white/10 rounded p-2 mb-2 text-white focus:border-cosmic-teal/50 outline-none" />
+                    <input type="text" id="newKeyValue" placeholder="API klíč"
+                        class="w-full bg-white/5 border border-white/10 rounded p-2 mb-2 text-white focus:border-cosmic-teal/50 outline-none" />
+                    <button onclick="addNewApiKey()"
+                        class="w-full nexus-btn-small bg-cosmic-teal/20 text-cosmic-teal border-cosmic-teal/50 py-2">Přidat</button>
                 </div>
             </div>
         </div>
@@ -273,10 +400,11 @@
 
     <!-- Model Info Modal -->
     <div id="modelInfoModal" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header">
-                <h2 id="modelInfoTitle">Model Info</h2>
-                <button class="closeModal" onclick="closeModelInfoModal()">×</button>
+        <div class="modal-content glass-card" style="max-width: 600px;">
+            <div class="modal-header border-b border-white/10 pb-4 mb-4 flex justify-between items-center">
+                <h2 id="modelInfoTitle" class="font-display text-xl text-cosmic-purple">Model Info</h2>
+                <button class="closeModal text-red-400 hover:text-red-300 text-2xl"
+                    onclick="closeModelInfoModal()">×</button>
             </div>
             <div class="modal-body" id="modelInfoBody">
                 <!-- Content injected by JS -->
@@ -284,6 +412,7 @@
         </div>
     </div>
 
+    <script src="js/star-map.js"></script>
     <script src="js/app.js?v=15"></script>
     <script src="js/message-ui.js?v=15"></script>
     <script src="js/chat-helpers.js?v=15"></script>

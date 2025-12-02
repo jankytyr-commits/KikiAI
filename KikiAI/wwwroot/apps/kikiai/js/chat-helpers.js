@@ -485,11 +485,12 @@ function addMessage(text, role, tokens = 0, metadata = null) {
 
     if (role === 'assistant' && metadata.model) {
         const color = getModelColor(metadata.model);
-        headerHtml += `<span class="modelBadge" style="color:${color};border:1px solid ${color};background:${color}20">${metadata.model}</span>`;
+        headerHtml += `<span class="modelBadge" style="color:${color};border:1px solid ${color};background:${color}20;font-size:0.7em;padding:1px 4px;border-radius:4px;margin-left:4px">${metadata.model}</span>`;
     }
-    headerHtml += `<div style="flex:1"></div>`;
-    if (tokens > 0) headerHtml += `<span class="msgTokens">${tokens.toLocaleString()} tok.</span>`;
-    if (metadata.timestamp) headerHtml += `<span class="msgTime">${formatTimestamp(metadata.timestamp)}</span>`;
+
+    // Metadata (Tokens, Time) - No spacer div, just spans
+    if (tokens > 0) headerHtml += `<span class="msgTokens" style="margin-left:8px;padding-left:8px;border-left:1px solid rgba(255,255,255,0.1)">${tokens.toLocaleString()} tok.</span>`;
+    if (metadata.timestamp) headerHtml += `<span class="msgTime" style="margin-left:8px">${formatTimestamp(metadata.timestamp)}</span>`;
 
     headerHtml += `
         <div class="msgActions">
