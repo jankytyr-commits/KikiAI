@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kiki Cross Road</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Cormorant Garamond"', 'serif'],
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        display: ['"Cinzel Decorative"', 'cursive'],
+                        mono: ['"Cormorant Garamond"', 'serif'],
+                    },
+                    colors: {
+                        cosmic: {
+                            void: '#020410',
+                            gold: '#fbbf24',
+                            teal: '#2dd4bf',
+                            pink: '#f472b6',
+                            purple: '#c084fc',
+                            glass: 'rgba(255, 255, 255, 0.05)',
+                            'glass-border': 'rgba(255, 255, 255, 0.1)',
+                        }
+                    },
+                    backgroundImage: {
+                        'glass-gradient': "linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)",
+                    },
+                    animation: {
+                        'spin-slow': 'spin 20s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'aurora': 'aurora 10s ease infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        aurora: {
+                            '0%, 100%': { filter: 'hue-rotate(0deg)' },
+                            '50%': { filter: 'hue-rotate(15deg)' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Global Resets */
+        body {
+            background-color: #020410;
+            color: #ffffff;
+            overflow-x: hidden;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 18px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .font-display {
+            font-family: 'Cinzel Decorative', cursive;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #020410;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        @keyframes scale-reveal {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+                filter: blur(4px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+                filter: blur(0);
+            }
+        }
+
+        .animate-scale-reveal {
+            animation: scale-reveal 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav className="fixed top-0 left-0 right-0 z-50 pt-6 px-6 pointer-events-none"
+        style="position: fixed; top: 0; left: 0; right: 0; z-index: 50; padding-top: 1.5rem; padding-left: 1.5rem; padding-right: 1.5rem; pointer-events: none;">
+        <div class="w-full max-w-7xl mx-auto flex items-start justify-between">
+            <div class="pointer-events-auto">
+                <!-- Spacer for Back Button -->
+                <div class="w-10 h-10 opacity-0"></div>
+            </div>
+            <div class="pointer-events-auto relative">
+                <button id="lang-btn" onclick="toggleLangMenu()"
+                    class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 backdrop-blur-md text-xs font-bold text-gray-200 hover:text-white transition-all shadow-lg">
+                    CS
+                </button>
+                <div id="lang-menu"
+                    class="hidden absolute top-full right-0 mt-2 w-24 py-1 glass-panel bg-[#020410]/90 rounded-xl overflow-hidden flex flex-col shadow-2xl border border-white/10">
+                    <button onclick="setLanguage('cs')"
+                        class="px-4 py-2 text-left text-xs font-bold hover:bg-white/10 text-gray-400 hover:text-white transition-colors">CZ</button>
+                    <button onclick="setLanguage('en')"
+                        class="px-4 py-2 text-left text-xs font-bold hover:bg-white/10 text-gray-400 hover:text-white transition-colors">EN</button>
+                    <button onclick="setLanguage('de')"
+                        class="px-4 py-2 text-left text-xs font-bold hover:bg-white/10 text-gray-400 hover:text-white transition-colors">DE</button>
+                    <button onclick="setLanguage('es')"
+                        class="px-4 py-2 text-left text-xs font-bold hover:bg-white/10 text-gray-400 hover:text-white transition-colors">ES</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative min-h-screen flex flex-col items-center justify-start pt-24 overflow-hidden">
+        <!-- Canvas Background -->
+        <div class="absolute top-0 left-0 w-full h-full z-0 pointer-events-none">
+            <canvas id="star-canvas" class="w-full h-full opacity-100"></canvas>
+        </div>
+
+        <!-- Text Layer -->
+        <div class="relative z-10 text-center px-4 max-w-5xl mx-auto flex flex-col items-center mt-0">
+            <h1 class="text-6xl md:text-8xl font-normal mb-8 tracking-widest animate-scale-reveal font-display text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-pink-300 to-amber-100 drop-shadow-[0_0_10px_rgba(165,243,252,0.6)] filter selection:bg-pink-500 selection:text-white"
+                style="filter: drop-shadow(0 0 10px rgba(165,243,252,0.5)) drop-shadow(0 0 25px rgba(249,168,212,0.3))">
+                KIKI CROSS ROAD
+            </h1>
+
+            <div class="h-8 mb-12 flex items-center justify-center gap-4">
+                <span class="h-[1px] w-20 bg-gradient-to-r from-transparent to-pink-300 rounded-full opacity-60"></span>
+                <span id="typing-text"
+                    class="text-sm md:text-base text-pink-100 font-light tracking-[0.3em] uppercase drop-shadow-[0_0_8px_rgba(244,114,182,0.6)] font-display">
+                    <!-- Typing text here -->
+                </span>
+                <span class="h-[1px] w-20 bg-gradient-to-l from-transparent to-pink-300 rounded-full opacity-60"></span>
+            </div>
+        </div>
+
+        <!-- CTA Button -->
+        <div class="absolute bottom-20 z-20">
+            <a href="#apps" onclick="scrollToApps(event)"
+                class="group relative px-10 py-4 rounded-full glass-panel hover:bg-white/10 transition-all duration-300 flex items-center gap-3 border border-amber-200/30 hover:border-amber-100 shadow-[0_0_30px_rgba(251,191,36,0.1)]">
+                <span id="hero-cta"
+                    class="text-xs font-semibold text-amber-100 tracking-[0.25em] uppercase drop-shadow-md group-hover:text-white transition-colors font-display">
+                    Prozkoumat
+                </span>
+                <span
+                    class="text-amber-200 group-hover:translate-y-1 transition-transform text-xs animate-bounce group-hover:text-white">▼</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Apps Section -->
+    <section id="apps" class="py-32 relative">
+        <div
+            class="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cosmic-gold/30 to-transparent">
+        </div>
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="text-center mb-20">
+                <h2 id="modules-title"
+                    class="text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+                    OBJEVENÉ SFÉRY
+                </h2>
+                <div class="flex items-center justify-center gap-4">
+                    <div class="w-12 h-px bg-cosmic-gold/50"></div>
+                    <div class="w-2 h-2 rotate-45 border border-cosmic-gold animate-spin-slow"></div>
+                    <div class="w-12 h-px bg-cosmic-gold/50"></div>
+                </div>
+                <p id="select-app-text" class="mt-4 text-cosmic-teal font-bold tracking-widest text-sm uppercase">
+                    ZVOLTE SVOU CESTU
+                </p>
+            </div>
+
+            <div id="apps-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 auto-rows-[450px]">
+                <!-- App Cards will be injected here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative py-12 border-t border-white/5 bg-[#020410]">
+        <div class="container mx-auto px-6 text-center">
+            <p id="footer-desc" class="text-gray-400 font-serif italic mb-4">Kosmický přístav pro poutníky napříč
+                dimenzemi.</p>
+            <div class="flex justify-center gap-6 text-xs tracking-widest uppercase text-gray-500 font-bold mb-8">
+                <a href="#" class="hover:text-cosmic-teal transition-colors">Stav Aetheru</a>
+                <a href="#" class="hover:text-cosmic-teal transition-colors">Kodex Tajemství</a>
+                <a href="#" class="hover:text-cosmic-teal transition-colors">Astrální Vzkaz</a>
+            </div>
+            <p class="text-white/20 text-xs">© 2025 KIKI CROSS ROAD. <span id="footer-rights">Všechny dimenze
+                    chráněny.</span></p>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA & TRANSLATIONS ---
+        const TRANSLATIONS = {
+            cs: {
+                nav: { back: 'ZPĚT' },
+                hero: { typing: ["VYVOLÁVÁNÍ SFÉR...", "LADĚNÍ AURY...", "BRÁNA OTEVŘENA."], cta: 'Prozkoumat' },
+                home: { modulesTitle: 'OBJEVENÉ SFÉRY', selectApp: 'ZVOLTE SVOU CESTU' },
+                appCard: { enter: 'Vstoupit' },
+                footer: { desc: 'Kosmický přístav pro poutníky napříč dimenzemi.', rights: 'Všechny dimenze chráněny.' }
+            },
+            en: {
+                nav: { back: 'BACK' },
+                hero: { typing: ["CONJURING SPHERES...", "TUNING AURA...", "GATEWAY OPEN."], cta: 'Explore' },
+                home: { modulesTitle: 'DISCOVERED REALMS', selectApp: 'CHOOSE YOUR PATH' },
+                appCard: { enter: 'Enter' },
+                footer: { desc: 'A cosmic harbor for travelers across dimensions.', rights: 'All dimensions guarded.' }
+            },
+            de: {
+                nav: { back: 'ZURÜCK' },
+                hero: { typing: ["SPHÄREN BESCHWÖREN...", "AURA ABSTIMMEN...", "TOR GEÖFFNET."], cta: 'Erkunden' },
+                home: { modulesTitle: 'ENTDECKTE REICHE', selectApp: 'WÄHLE DEINEN PFAD' },
+                appCard: { enter: 'Eintreten' },
+                footer: { desc: 'Ein kosmischer Hafen für Reisende durch die Dimensionen.', rights: 'Alle Dimensionen geschützt.' }
+            },
+            es: {
+                nav: { back: 'ATRÁS' },
+                hero: { typing: ["CONVOCANDO ESFERAS...", "AFINANDO AURA...", "PUERTA ABIERTA."], cta: 'Explorar' },
+                home: { modulesTitle: 'REINOS DESCUBIERTOS', selectApp: 'ELIGE TU CAMINO' },
+                appCard: { enter: 'Entrar' },
+                footer: { desc: 'Un puerto cósmico para viajeros a través de dimensiones.', rights: 'Todas las dimensiones protegidas.' }
+            }
+        };
+
+        const APPS_DATA = [
+            {
+                id: 'kicommander',
+                name: 'KiKimmander',
+                shortDescription: {
+                    cs: 'Futuristický webový průzkumník souborů a dimenzí.',
+                    en: 'Futuristic web file and dimension explorer.',
+                    de: 'Futuristischer Web-Datei-Explorer.',
+                    es: 'Explorador de archivos web futurista.'
+                },
+                icon: '💾',
+                heroImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1920&auto=format&fit=crop',
+                url: 'http://www.ekobio.org/apps/commandergem/'
+            },
+            {
+                id: 'kiki-ai',
+                name: 'KikiAi',
+                shortDescription: {
+                    cs: 'Specializovaný chatbot a Vědma Prázdnoty.',
+                    en: 'Specialized chatbot and Void Oracle.',
+                    de: 'Spezialisierter Chatbot und Leere-Orakel.',
+                    es: 'Chatbot especializado y Oráculo del Vacío.'
+                },
+                icon: '🔮',
+                heroImage: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1920&auto=format&fit=crop',
+                url: 'http://www.ekobio.org/apps/kikiai/'
+            },
+            {
+                id: 'aetheria-adventures',
+                name: 'Aetheria Adventures',
+                shortDescription: {
+                    cs: 'Puzzle hra na motivy 4 elementů.',
+                    en: 'Puzzle game based on 4 elements.',
+                    de: 'Puzzlespiel basierend auf 4 Elementen.',
+                    es: 'Juego de rompecabezas basado en 4 elementos.'
+                },
+                icon: '🧩',
+                heroImage: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop',
+                url: '#'
+            },
+            {
+                id: 'nebula-weaver',
+                name: 'Nebula Weaver',
+                shortDescription: {
+                    cs: 'Generativní audiovizuální syntezátor.',
+                    en: 'Generative audiovisual synthesizer.',
+                    de: 'Generativer audiovisueller Synthesizer.',
+                    es: 'Sintetizador audiovisual generativo.'
+                },
+                icon: '✨',
+                heroImage: 'https://images.unsplash.com/photo-1506318137071-a8bcbf67cc77?q=80&w=1920&auto=format&fit=crop',
+                url: '#'
+            }
+        ];
+
+        let currentLang = 'cs';
+
+        // --- UI LOGIC ---
+
+        function toggleLangMenu() {
+            const menu = document.getElementById('lang-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.getElementById('lang-btn').innerText = lang.toUpperCase();
+            document.getElementById('lang-menu').classList.add('hidden');
+            updateContent();
+        }
+
+        function updateContent() {
+            const t = TRANSLATIONS[currentLang];
+
+            // Hero
+            document.getElementById('hero-cta').innerText = t.hero.cta;
+
+            // Home
+            document.getElementById('modules-title').innerText = t.home.modulesTitle;
+            document.getElementById('select-app-text').innerText = t.home.selectApp;
+
+            // Footer
+            document.getElementById('footer-desc').innerText = t.footer.desc;
+            document.getElementById('footer-rights').innerText = t.footer.rights;
+
+            // Apps Grid
+            renderApps();
+        }
+
+        function renderApps() {
+            const grid = document.getElementById('apps-grid');
+            grid.innerHTML = '';
+
+            APPS_DATA.forEach((app, index) => {
+                const delayClass = `delay-${Math.min(index * 150, 600)}`;
+                const shortDesc = app.shortDescription[currentLang];
+                const enterText = TRANSLATIONS[currentLang].appCard.enter;
+
+                const cardHtml = `
+                <a href="${app.url}" class="group relative block w-full h-[480px] ${delayClass} animate-fadeIn">
+                    <div class="relative w-full h-full rounded-[2rem] overflow-hidden glass-card bg-white/5 border border-white/20 transition-all duration-500 ease-out group-hover:scale-[1.02] group-hover:shadow-[0_10px_50px_rgba(255,255,255,0.15)] group-hover:border-white/40 group-hover:bg-white/10">
+                        <div class="absolute inset-0">
+                            <img src="${app.heroImage}" alt="" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-all duration-700" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#020410] via-[#020410]/50 to-transparent"></div>
+                        </div>
+                        <div class="relative z-10 h-full p-8 flex flex-col justify-end items-start">
+                            <div class="mb-auto p-4 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md group-hover:bg-white/20 transition-colors shadow-lg">
+                                <span class="text-3xl filter drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">${app.icon}</span>
+                            </div>
+                            <h3 class="text-3xl text-white mb-3 drop-shadow-md group-hover:translate-x-1 transition-transform duration-300 font-display" style="font-family: 'Cinzel Decorative', cursive;">
+                                ${app.name}
+                            </h3>
+                            <p class="text-gray-100 text-lg leading-relaxed mb-6 line-clamp-3 group-hover:text-white transition-colors font-serif font-medium text-shadow-sm">
+                                ${shortDesc}
+                            </p>
+                            <div class="w-full h-[1px] bg-white/30 mb-6 group-hover:bg-white/50 transition-colors"></div>
+                            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white group-hover:text-cyan-200 transition-colors drop-shadow-sm font-display">
+                                ${enterText}
+                                <span class="transform group-hover:translate-x-1 transition-transform">→</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                `;
+                grid.innerHTML += cardHtml;
+            });
+        }
+
+        function scrollToApps(e) {
+            e.preventDefault();
+            document.getElementById('apps').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- TYPING EFFECT ---
+        let textIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let typingTimeout;
+
+        function typeEffect() {
+            const phrases = TRANSLATIONS[currentLang].hero.typing;
+            const currentPhrase = phrases[textIndex % phrases.length];
+            const typingElement = document.getElementById('typing-text');
+
+            if (isDeleting) {
+                typingElement.innerText = currentPhrase.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typingElement.innerText = currentPhrase.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let typeSpeed = isDeleting ? 30 : 80;
+
+            if (!isDeleting && charIndex === currentPhrase.length) {
+                typeSpeed = 2500; // Pause at end
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                textIndex++;
+                typeSpeed = 500;
+            }
+
+            typingTimeout = setTimeout(typeEffect, typeSpeed);
+        }
+
+        // --- STAR MAP ANIMATION ---
+        function initStarMap() {
+            const canvas = document.getElementById('star-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            let width, height;
+            const resize = () => {
+                width = canvas.parentElement.clientWidth;
+                height = canvas.parentElement.clientHeight;
+                canvas.width = width;
+                canvas.height = height;
+            };
+            window.addEventListener('resize', resize);
+            resize();
+
+            const STAR_COUNT = 300;
+            const FOV = 400;
+            const COLORS = ['#FCD34D', '#F472B6', '#A78BFA', '#6EE7B7'];
+            const stars = [];
+
+            for (let i = 0; i < STAR_COUNT; i++) {
+                const isActive = Math.random() < 0.08;
+                stars.push({
+                    x: (Math.random() - 0.5) * 1200,
+                    y: (Math.random() - 0.5) * 700,
+                    z: (Math.random() - 0.5) * 1200,
+                    baseSize: isActive ? Math.random() * 2 + 2.5 : Math.random() * 1.5 + 0.5,
+                    active: isActive,
+                    color: isActive ? COLORS[Math.floor(Math.random() * COLORS.length)] : '#E2E8F0',
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+
+            let rotation = 0;
+
+            function render() {
+                ctx.clearRect(0, 0, width, height);
+                const cx = width / 2;
+                const cy = height / 2;
+                rotation += 0.0010;
+
+                const projectedStars = stars.map(star => {
+                    const x1 = star.x * Math.cos(rotation) - star.z * Math.sin(rotation);
+                    const z1 = star.x * Math.sin(rotation) + star.z * Math.cos(rotation);
+                    const y2 = star.y * Math.cos(0.1) - z1 * Math.sin(0.1);
+                    const z2 = star.y * Math.sin(0.1) + z1 * Math.cos(0.1);
+                    const scale = FOV / (FOV + z2 + 800);
+                    return { ...star, x2d: x1 * scale + cx, y2d: y2 * scale + cy, scale, z: z2 };
+                });
+
+                projectedStars.sort((a, b) => b.z - a.z);
+
+                ctx.lineWidth = 1;
+                projectedStars.forEach((s1, i) => {
+                    if (s1.active && s1.z > -500) {
+                        projectedStars.forEach((s2, j) => {
+                            if (i === j) return;
+                            const dx = s1.x2d - s2.x2d;
+                            const dy = s1.y2d - s2.y2d;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            const maxDist = 150 * s1.scale;
+                            if (dist < maxDist) {
+                                ctx.strokeStyle = `rgba(255, 255, 255, ${(1 - dist / maxDist) * 0.2})`;
+                                ctx.beginPath();
+                                ctx.moveTo(s1.x2d, s1.y2d);
+                                ctx.lineTo(s2.x2d, s2.y2d);
+                                ctx.stroke();
+                            }
+                        });
+                    }
+                });
+
+                projectedStars.forEach(star => {
+                    if (star.z > -FOV && star.scale > 0) {
+                        const size = star.baseSize * star.scale;
+                        const opacity = Math.min(1, (1 + Math.sin(Date.now() * 0.002 + star.phase)) * 0.2 + 0.4);
+
+                        if (star.active) {
+                            const grad = ctx.createRadialGradient(star.x2d, star.y2d, 0, star.x2d, star.y2d, size * 4);
+                            grad.addColorStop(0, star.color);
+                            grad.addColorStop(1, 'transparent');
+                            ctx.globalCompositeOperation = 'screen';
+                            ctx.fillStyle = grad;
+                            ctx.beginPath();
+                            ctx.arc(star.x2d, star.y2d, size * 4, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.globalCompositeOperation = 'source-over';
+
+                            if (star.scale > 0.8) {
+                                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                                ctx.font = '10px "Cinzel Decorative"';
+                                ctx.fillText(`SYS-${Math.floor(Math.abs(star.x) % 99)}`, star.x2d + 8, star.y2d + 8);
+                            }
+                        }
+
+                        ctx.fillStyle = star.active ? '#ffffff' : `rgba(255, 255, 255, ${opacity})`;
+                        ctx.beginPath();
+                        ctx.arc(star.x2d, star.y2d, size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+
+                requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        // --- INIT ---
+        window.onload = () => {
+            updateContent();
+            typeEffect();
+            initStarMap();
+        };
+
+    </script>
+</body>
+
+</html>
