@@ -13,18 +13,18 @@
     window.addEventListener('resize', resize);
     resize();
 
-    const STAR_COUNT = 200;
+    const STAR_COUNT = 400;
     const FOV = 400;
-    const COLORS = ['#FCD34D', '#F472B6', '#A78BFA', '#6EE7B7'];
+    const COLORS = ['#FCD34D', '#F472B6', '#A78BFA', '#6EE7B7', '#FFFFFF'];
     const stars = [];
 
     for (let i = 0; i < STAR_COUNT; i++) {
         const isActive = Math.random() < 0.08;
         stars.push({
-            x: (Math.random() - 0.5) * 1200,
-            y: (Math.random() - 0.5) * 700,
-            z: (Math.random() - 0.5) * 1200,
-            baseSize: isActive ? Math.random() * 2 + 2.5 : Math.random() * 1.5 + 0.5,
+            x: (Math.random() - 0.5) * 2800,
+            y: (Math.random() - 0.5) * 1800,
+            z: (Math.random() - 0.5) * 2800,
+            baseSize: isActive ? Math.random() * 3 + 3.5 : Math.random() * 2 + 0.8,
             active: isActive,
             color: isActive ? COLORS[Math.floor(Math.random() * COLORS.length)] : '#E2E8F0',
             phase: Math.random() * Math.PI * 2
@@ -74,7 +74,7 @@
         projectedStars.forEach(star => {
             if (star.z > -FOV && star.scale > 0) {
                 const size = star.baseSize * star.scale;
-                const opacity = Math.min(1, (1 + Math.sin(Date.now() * 0.002 + star.phase)) * 0.2 + 0.3);
+                const opacity = Math.min(1, (1 + Math.sin(Date.now() * 0.002 + star.phase)) * 0.3 + 0.5);
 
                 ctx.fillStyle = star.active ? star.color : `rgba(255, 255, 255, ${opacity})`;
                 ctx.beginPath();

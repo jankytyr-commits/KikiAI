@@ -32,7 +32,7 @@ body {
     height: 100%;
     z-index: -1;
     pointer-events: none;
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 /* Glass Panel Utility */
@@ -112,25 +112,22 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Chat Messages - REDUCED OPACITY */
+/* Chat Messages - NO BACKDROP FILTER */
 .msg {
     margin: 0.5rem 0;
     padding: 1rem;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.01);
+    background: transparent;
     border: 1px solid var(--border);
-    backdrop-filter: blur(5px);
     animation: fadeIn 0.3s ease;
 }
 
 .user {
     border-left: 3px solid var(--accent);
-    background: linear-gradient(90deg, rgba(45, 212, 191, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%);
 }
 
 .bot {
     border-left: 3px solid var(--danger);
-    background: linear-gradient(90deg, rgba(244, 114, 182, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%);
 }
 
 /* UPDATED HEADER STYLES */
