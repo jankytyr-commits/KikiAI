@@ -115,6 +115,11 @@
         .back-btn:hover {
             background: rgba(255, 255, 255, 0.3);
         }
+
+        #loading {
+            font-style: italic;
+            color: #aaa;
+        }
     </style>
 </head>
 
@@ -124,30 +129,136 @@
         <h1>KInteractive Storybook</h1>
         <p class="subtitle">Magické příběhy na dosah ruky</p>
 
-        <div class="story-list">
-            <!-- Example Item -->
-            <a href="#" class="story-item" onclick="alert('Žádné příběhy zatím nebyly nahrány.')">
-                <span class="story-icon">📚</span>
-                <div class="story-info">
-                    <h3>Knihovna prázdná</h3>
-                    <p>Zatím zde nejsou žádné příběhy. Nahrajte HTML soubory do složky.</p>
-                </div>
-            </a>
+        <div id="storyList" class="story-list">
+            <div id="loading">Načítám knihovnu...</div>
+        </div>
 
-            <!-- 
-            Pro přidání příběhu zkopírujte tento blok a upravte href:
-            <a href="pribeh1.html" class="story-item">
-                <span class="story-icon">✨</span>
-                <div class="story-info">
-                    <h3>Název Příběhu</h3>
-                    <p>Krátký popis příběhu...</p>
-                </div>
-            </a>
-            -->
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 10px;">Nebo otevřít přímo:</p>
+            <input type="text" id="manualInput" placeholder="bookcase/pribeh.html"
+                style="padding: 8px; border-radius: 5px; border: none; width: 200px;">
+            <button onclick="openManual()"
+                style="padding: 8px 15px; border-radius: 5px; border: none; background: #ffd700; color: #000; cursor: pointer; font-weight: bold;">Otevřít</button>
         </div>
 
         <a href="../../" class="back-btn">⬅ Zpět na rozcestník</a>
     </div>
+
+    <script>
+        function openManual() {
+            const val = document.getElementById('manualInput').value;
+            if (val) window.location.href = val;
+        }
+
+        async function loadStories() {
+            const listEl = document.getElementById('storyList');
+            let items = [];
+
+            // 1. Try ASP.NET API endpoint (Most reliable)
+            try {
+                const response = await fetch('/api/storybook/list?t=' + Date.now());
+                if (response.ok) {
+                    const apiItems = await response.json();
+                    if (Array.isArray(apiItems)) {
+                        items = items.concat(apiItems);
+                    }
+                }
+            } catch (e) {
+                console.log('API endpoint failed. Trying PHP...', e);
+            }
+
+            // 2. Try PHP scanner (Fallback)
+            if (items.length === 0) {
+                try {
+                    // Prevent caching with t=
+                    const response = await fetch('bookcase/scan.php?t=' + Date.now());
+                    if (response.ok) {
+                        const phpItems = await response.json();
+                        if (Array.isArray(phpItems)) {
+                            items = items.concat(phpItems);
+                        }
+                    }
+                } catch (e) {
+                    console.log('PHP Scanner failed. Trying fallback...', e);
+                }
+            }
+
+            // 3. Try directory listing (Fallback if PHP is not supported)
+            if (items.length === 0) {
+                try {
+                    const response = await fetch('bookcase/');
+                    if (response.ok) {
+                        const text = await response.text();
+
+                        // Simple check if we got an HTML directory listing (IIS or Apache style)
+                        if (text.includes('href') && (text.includes('test_story.html') || text.includes('TO_PARENT_DIR') || text.toLowerCase().includes('<a href="'))) {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(text, 'text/html');
+                            const links = Array.from(doc.querySelectorAll('a'));
+                            links.forEach(a => {
+                                const href = a.getAttribute('href');
+                                // Filter out irrelevant links
+                                if (!href || href === '../' || href.startsWith('?') || href === '/' || href.includes('web.config') || href.includes('scan.php')) return;
+                                if (!href.endsWith('.html') && !href.endsWith('.htm')) return;
+
+                                const cleanHref = href.split('/').pop();
+                                if (items.some(x => x.filename.endsWith(cleanHref))) return;
+
+                                items.push({
+                                    filename: 'bookcase/' + cleanHref,
+                                    title: cleanHref.replace('.html', '').replace(/[-_]/g, ' '),
+                                    date: new Date().toISOString()
+                                });
+                            });
+                        }
+                    }
+                } catch (e) { console.log('Directory listing failed', e); }
+            }
+
+            // 4. Last Manual JSON fallback (stories.txt in root)
+            if (items.length === 0) {
+                try {
+                    const response = await fetch('stories.txt?t=' + Date.now());
+                    if (response.ok) {
+                        const json = await response.json();
+                        if (Array.isArray(json)) {
+                            items = items.concat(json);
+                        }
+                    }
+                } catch (e) { }
+            }
+
+            // Render
+            if (items.length === 0) {
+                listEl.innerHTML = `
+                    <div class="story-item" onclick="location.reload()">
+                       <span class="story-icon">📂</span>
+                       <div class="story-info">
+                           <h3>Knihovna prázdná</h3>
+                           <p>Ani PHP, ani adresář, ani stories.json nevrátil výsledky. Zkuste manuální vložení.</p>
+                       </div>
+                    </div>`;
+                return;
+            }
+
+            listEl.innerHTML = '';
+            items.forEach(story => {
+                const item = document.createElement('a');
+                item.href = story.filename;
+                item.className = 'story-item';
+                item.innerHTML = `
+                    <span class="story-icon">📜</span>
+                    <div class="story-info">
+                        <h3>${story.title}</h3>
+                        <p>${story.filename}</p>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        loadStories();
+    </script>
 </body>
 
 </html>

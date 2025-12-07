@@ -92,7 +92,7 @@ if (!app.Environment.IsDevelopment())
     {
         var path = context.Request.Path.Value?.ToLower();
         if (path != null && (
-            path.EndsWith(".json") || 
+            (path.EndsWith(".json") && !path.Contains("/stories.json")) || 
             path.EndsWith(".dll") || 
             path.EndsWith(".config") || 
             path.EndsWith(".pdb") || 
