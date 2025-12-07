@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KInteractive Storybook</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('../../img/storybook.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 90%;
+            max-width: 800px;
+            margin-top: 50px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Georgia', serif;
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #ffd700;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+        }
+
+        p.subtitle {
+            font-size: 1.2rem;
+            color: #ccc;
+            margin-bottom: 40px;
+        }
+
+        .story-list {
+            display: grid;
+            gap: 20px;
+            text-align: left;
+        }
+
+        .story-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            border: 1px solid transparent;
+        }
+
+        .story-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(10px);
+            border-color: #ffd700;
+        }
+
+        .story-icon {
+            font-size: 2rem;
+            margin-right: 20px;
+        }
+
+        .story-info h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: #ffd700;
+        }
+
+        .story-info p {
+            margin: 5px 0 0 0;
+            font-size: 0.9rem;
+            color: #ddd;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="overlay"></div>
+    <div class="container">
+        <h1>KInteractive Storybook</h1>
+        <p class="subtitle">Magické příběhy na dosah ruky</p>
+
+        <div class="story-list">
+            <!-- Example Item -->
+            <a href="#" class="story-item" onclick="alert('Žádné příběhy zatím nebyly nahrány.')">
+                <span class="story-icon">📚</span>
+                <div class="story-info">
+                    <h3>Knihovna prázdná</h3>
+                    <p>Zatím zde nejsou žádné příběhy. Nahrajte HTML soubory do složky.</p>
+                </div>
+            </a>
+
+            <!-- 
+            Pro přidání příběhu zkopírujte tento blok a upravte href:
+            <a href="pribeh1.html" class="story-item">
+                <span class="story-icon">✨</span>
+                <div class="story-info">
+                    <h3>Název Příběhu</h3>
+                    <p>Krátký popis příběhu...</p>
+                </div>
+            </a>
+            -->
+        </div>
+
+        <a href="../../" class="back-btn">⬅ Zpět na rozcestník</a>
+    </div>
+</body>
+
+</html>
