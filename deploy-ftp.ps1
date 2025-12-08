@@ -44,9 +44,9 @@ $directories = $files | ForEach-Object {
     $relativePath = $_.DirectoryName.Substring($localPathFull.Length).Replace('\', '/')
     if ($relativePath.StartsWith('/')) { $relativePath = $relativePath.Substring(1) }
     
-    # Flatten wwwroot - files go to root, but we keep wwwroot folder empty
-    if ($relativePath -eq "wwwroot") { return $null }
-    if ($relativePath.StartsWith("wwwroot/")) { $relativePath = $relativePath.Substring(8) }
+    # Flatten wwwroot logic REMOVED - we want wwwroot to exist on server
+    # if ($relativePath -eq "wwwroot") { return $null }
+    # if ($relativePath.StartsWith("wwwroot/")) { $relativePath = $relativePath.Substring(8) }
     
     if ($relativePath) { $relativePath }
 } | Select-Object -Unique | Sort-Object
@@ -71,8 +71,8 @@ foreach ($file in $files) {
     $localPathFull = (Resolve-Path $LocalPath).Path
     $relativePath = $file.FullName.Substring($localPathFull.Length + 1).Replace('\', '/')
     
-    # Flatten wwwroot
-    if ($relativePath.StartsWith("wwwroot/")) { $relativePath = $relativePath.Substring(8) }
+    # Flatten wwwroot logic REMOVED
+    # if ($relativePath.StartsWith("wwwroot/")) { $relativePath = $relativePath.Substring(8) }
     $ftpUri = "ftp://$FtpServer$RemotePath$relativePath"
     
     try {
