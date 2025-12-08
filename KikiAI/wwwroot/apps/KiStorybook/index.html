@@ -10,7 +10,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-image: url('img/storybook.jpg');
+            background-image: url('https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=1920&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -154,23 +154,37 @@
             const listEl = document.getElementById('storyList');
             let items = [];
 
-            // 1. Try ASP.NET API endpoint (Most reliable)
+            // 1. Try stories.txt FIRST (Most reliable, manually curated)
             try {
-                const response = await fetch('/api/storybook/list?t=' + Date.now());
+                const response = await fetch('stories.txt?t=' + Date.now());
                 if (response.ok) {
-                    const apiItems = await response.json();
-                    if (Array.isArray(apiItems)) {
-                        items = items.concat(apiItems);
+                    const json = await response.json();
+                    if (Array.isArray(json)) {
+                        items = items.concat(json);
                     }
                 }
             } catch (e) {
-                console.log('API endpoint failed. Trying PHP...', e);
+                console.log('stories.txt failed, trying other methods...', e);
             }
 
-            // 2. Try PHP scanner (Fallback)
+            // 2. Try ASP.NET API endpoint (Fallback)
             if (items.length === 0) {
                 try {
-                    // Prevent caching with t=
+                    const response = await fetch('/api/storybook/list?t=' + Date.now());
+                    if (response.ok) {
+                        const apiItems = await response.json();
+                        if (Array.isArray(apiItems)) {
+                            items = items.concat(apiItems);
+                        }
+                    }
+                } catch (e) {
+                    console.log('API endpoint failed. Trying PHP...', e);
+                }
+            }
+
+            // 3. Try PHP scanner (Fallback)
+            if (items.length === 0) {
+                try {
                     const response = await fetch('bookcase/scan.php?t=' + Date.now());
                     if (response.ok) {
                         const phpItems = await response.json();
@@ -179,25 +193,22 @@
                         }
                     }
                 } catch (e) {
-                    console.log('PHP Scanner failed. Trying fallback...', e);
+                    console.log('PHP Scanner failed. Trying directory listing...', e);
                 }
             }
 
-            // 3. Try directory listing (Fallback if PHP is not supported)
+            // 4. Try directory listing (Last resort)
             if (items.length === 0) {
                 try {
                     const response = await fetch('bookcase/');
                     if (response.ok) {
                         const text = await response.text();
-
-                        // Simple check if we got an HTML directory listing (IIS or Apache style)
                         if (text.includes('href') && (text.includes('test_story.html') || text.includes('TO_PARENT_DIR') || text.toLowerCase().includes('<a href="'))) {
                             const parser = new DOMParser();
                             const doc = parser.parseFromString(text, 'text/html');
                             const links = Array.from(doc.querySelectorAll('a'));
                             links.forEach(a => {
                                 const href = a.getAttribute('href');
-                                // Filter out irrelevant links
                                 if (!href || href === '../' || href.startsWith('?') || href === '/' || href.includes('web.config') || href.includes('scan.php')) return;
                                 if (!href.endsWith('.html') && !href.endsWith('.htm')) return;
 
@@ -213,19 +224,6 @@
                         }
                     }
                 } catch (e) { console.log('Directory listing failed', e); }
-            }
-
-            // 4. Last Manual JSON fallback (stories.txt in root)
-            if (items.length === 0) {
-                try {
-                    const response = await fetch('stories.txt?t=' + Date.now());
-                    if (response.ok) {
-                        const json = await response.json();
-                        if (Array.isArray(json)) {
-                            items = items.concat(json);
-                        }
-                    }
-                } catch (e) { }
             }
 
             // Render

@@ -1,21 +1,21 @@
 [
   {
-    "filename": "/wwwroot/apps/KiStorybook/bookcase/pohadka_housenka_berta.html",
+    "filename": "http://www.ekobio.org/wwwroot/apps/KiStorybook/bookcase/pohadka_housenka_berta.html",
     "title": "Pohádka Housénka Berta",
     "date": "2025-12-07 23:00:00"
   },
   {
-    "filename": "/wwwroot/apps/KiStorybook/bookcase/pohadka_harry_potter.html",
+    "filename": "http://www.ekobio.org/wwwroot/apps/KiStorybook/bookcase/pohadka_harry_potter.html",
     "title": "Pohádka Harry Potter",
     "date": "2025-12-07 23:00:00"
   },
   {
-    "filename": "/wwwroot/apps/KiStorybook/bookcase/pohadka_ryder_a_tlapkov_patrola.html",
+    "filename": "http://www.ekobio.org/wwwroot/apps/KiStorybook/bookcase/pohadka_ryder_a_tlapkov_patrola.html",
     "title": "Pohádka Ryder a Tlapkov Patrola",
     "date": "2025-12-07 23:00:00"
   },
   {
-    "filename": "/wwwroot/apps/KiStorybook/bookcase/test_story.html",
+    "filename": "http://www.ekobio.org/wwwroot/apps/KiStorybook/bookcase/test_story.html",
     "title": "Test Story",
     "date": "2025-12-07 22:39:00"
   }
