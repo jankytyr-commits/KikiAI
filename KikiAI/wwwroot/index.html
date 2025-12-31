@@ -125,6 +125,11 @@
 </head>
 
 <body>
+    <!-- Star Background (Fixed) -->
+    <div class="fixed inset-0 z-0 pointer-events-none bg-[#020410]">
+        <canvas id="star-canvas" class="w-full h-full opacity-100"></canvas>
+    </div>
+
 
     <!-- Navbar -->
     <nav className="fixed top-0 left-0 right-0 z-50 pt-6 px-6 pointer-events-none"
@@ -156,10 +161,6 @@
 
     <!-- Hero Section -->
     <div class="relative min-h-screen flex flex-col items-center justify-start pt-24 overflow-hidden">
-        <!-- Canvas Background -->
-        <div class="absolute top-0 left-0 w-full h-full z-0 pointer-events-none">
-            <canvas id="star-canvas" class="w-full h-full opacity-100"></canvas>
-        </div>
 
         <!-- Text Layer -->
         <div class="relative z-10 text-center px-4 max-w-5xl mx-auto flex flex-col items-center mt-0">
@@ -449,17 +450,22 @@
             window.addEventListener('resize', resize);
             resize();
 
-            const STAR_COUNT = 300;
+            const STAR_COUNT = 800; // Increased for larger area
             const FOV = 400;
             const COLORS = ['#FCD34D', '#F472B6', '#A78BFA', '#6EE7B7'];
             const stars = [];
 
+            // Spread stars across the entire canvas (plus some buffer)
+            const spreadX = Math.max(width, 1920) * 1.5;
+            const spreadY = Math.max(height, 1080) * 1.5;
+            const spreadZ = 2000;
+
             for (let i = 0; i < STAR_COUNT; i++) {
                 const isActive = Math.random() < 0.08;
                 stars.push({
-                    x: (Math.random() - 0.5) * 1200,
-                    y: (Math.random() - 0.5) * 700,
-                    z: (Math.random() - 0.5) * 1200,
+                    x: (Math.random() - 0.5) * spreadX,
+                    y: (Math.random() - 0.5) * spreadY,
+                    z: (Math.random() - 0.5) * spreadZ,
                     baseSize: isActive ? Math.random() * 2 + 2.5 : Math.random() * 1.5 + 0.5,
                     active: isActive,
                     color: isActive ? COLORS[Math.floor(Math.random() * COLORS.length)] : '#E2E8F0',
@@ -473,7 +479,7 @@
                 ctx.clearRect(0, 0, width, height);
                 const cx = width / 2;
                 const cy = height / 2;
-                rotation += 0.0010;
+                rotation += 0.0005;
 
                 const projectedStars = stars.map(star => {
                     const x1 = star.x * Math.cos(rotation) - star.z * Math.sin(rotation);
