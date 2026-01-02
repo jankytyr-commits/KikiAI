@@ -15,17 +15,33 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
 // Register HttpClient for external API calls
 builder.Services.AddHttpClient();
 
-// Configure MySQL Database (optional - only if Database section exists in config)
-var dbServer = builder.Configuration["Database:Server"];
-var dbAccount = builder.Configuration["Database:AccountName"];
-var dbName = builder.Configuration["Database:DatabaseName"];
-var dbPassword = builder.Configuration["Database:Password"];
+// Configure Database (MSSQL)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-if (!string.IsNullOrEmpty(dbServer) && !string.IsNullOrEmpty(dbAccount))
+if (string.IsNullOrEmpty(connectionString))
 {
-    var connectionString = $"Server={dbServer};Database={dbName};User={dbAccount};Password={dbPassword};";
+    var dbServer = builder.Configuration["Database:Server"];
+    var dbAccount = builder.Configuration["Database:AccountName"];
+    var dbName = builder.Configuration["Database:DatabaseName"];
+    var dbPassword = builder.Configuration["Database:Password"];
+
+    if (!string.IsNullOrEmpty(dbServer) && !string.IsNullOrEmpty(dbAccount))
+    {
+        connectionString = $"Server={dbServer};Database={dbName};User Id={dbAccount};Password={dbPassword};TrustServerCertificate=True;";
+    }
+}
+
+if (!string.IsNullOrEmpty(connectionString))
+{
     builder.Services.AddDbContext<KikiDbContext>(options =>
-        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+        options.UseSqlServer(connectionString));
+}
+else
+{
+    // Fallback: Register it anyway (maybe in-memory or just to prevent DI crash)
+    // Actually, it's better to register it so DI doesn't fail, but it will fail on usage.
+    builder.Services.AddDbContext<KikiDbContext>(options => 
+        options.UseInMemoryDatabase("KikiAuthFallback"));
 }
 
 builder.Services.AddSingleton<TavilyService>(sp => 
@@ -33,6 +49,17 @@ builder.Services.AddSingleton<TavilyService>(sp =>
 
 builder.Services.AddSingleton<ChatService>();
 builder.Services.AddSingleton<ApiKeyService>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+});
 
 
 // Register AI provider based on configuration (read API keys from config)
@@ -111,6 +138,8 @@ if (!app.Environment.IsDevelopment())
 // Serve static files
 app.UseDefaultFiles();
 app.UseStaticFiles();
+
+app.UseCors("AllowAll");
 
 app.MapControllers();
 

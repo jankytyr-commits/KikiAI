@@ -134,21 +134,26 @@
                 <!-- Spacer for Back Button -->
                 <div class="w-10 h-10 opacity-0"></div>
             </div>
-            <div class="pointer-events-auto relative">
-                <button id="lang-btn" onclick="toggleLangMenu()"
-                    class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 backdrop-blur-md text-xs font-bold text-gray-200 hover:text-white transition-all shadow-lg">
-                    CS
-                </button>
-                <div id="lang-menu"
-                    class="hidden absolute top-full right-0 mt-2 w-24 py-1 glass-panel bg-[#020410]/90 rounded-xl overflow-hidden flex flex-col shadow-2xl border border-white/10">
-                    <button onclick="setLanguage('cs')"
-                        class="px-4 py-2 text-left text-xs font-bold hover:bg-white/10 text-gray-400 hover:text-white transition-colors">CZ</button>
-                    <button onclick="setLanguage('en')"
-                        class="px-4 py-2 text-left text-xs font-bold hover:bg-white/10 text-gray-400 hover:text-white transition-colors">EN</button>
-                    <button onclick="setLanguage('de')"
-                        class="px-4 py-2 text-left text-xs font-bold hover:bg-white/10 text-gray-400 hover:text-white transition-colors">DE</button>
-                    <button onclick="setLanguage('es')"
-                        class="px-4 py-2 text-left text-xs font-bold hover:bg-white/10 text-gray-400 hover:text-white transition-colors">ES</button>
+            <div class="pointer-events-auto flex items-center gap-4">
+                <!-- Auth Container -->
+                <div id="auth-container"></div>
+
+                <div class="relative">
+                    <button id="lang-btn" onclick="toggleLangMenu()"
+                        class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 backdrop-blur-md text-xs font-bold text-gray-200 hover:text-white transition-all shadow-lg">
+                        CS
+                    </button>
+                    <div id="lang-menu"
+                        class="hidden absolute top-full right-0 mt-2 w-24 py-1 glass-panel bg-[#020410]/90 rounded-xl overflow-hidden flex flex-col shadow-2xl border border-white/10">
+                        <button onclick="setLanguage('cs')"
+                            class="px-4 py-2 text-left text-xs font-bold hover:bg-white/10 text-gray-400 hover:text-white transition-colors">CZ</button>
+                        <button onclick="setLanguage('en')"
+                            class="px-4 py-2 text-left text-xs font-bold hover:bg-white/10 text-gray-400 hover:text-white transition-colors">EN</button>
+                        <button onclick="setLanguage('de')"
+                            class="px-4 py-2 text-left text-xs font-bold hover:bg-white/10 text-gray-400 hover:text-white transition-colors">DE</button>
+                        <button onclick="setLanguage('es')"
+                            class="px-4 py-2 text-left text-xs font-bold hover:bg-white/10 text-gray-400 hover:text-white transition-colors">ES</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -541,14 +546,191 @@
             render();
         }
 
+        // --- AUTH API & LOGIC ---
+        const API_BASE = '/api/auth'; // Relative path assuming hosted on same origin
+
+        const authState = {
+            user: JSON.parse(localStorage.getItem('kiki_user') || 'null'),
+            token: localStorage.getItem('kiki_token')
+        };
+
+        function updateAuthUI() {
+            const container = document.getElementById('auth-container');
+            if (authState.user) {
+                container.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-bold text-purple-200 hidden md:block" style="font-family: 'Cormorant Garamond', serif;">${authState.user.userName}</span>
+                        <button onclick="logout()" class="px-5 py-2.5 rounded-full bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-xs font-bold text-red-200 transition-all shadow-lg font-display">
+                            ODHLÁSIT
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <button onclick="openAuthModal()" class="px-5 py-2.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 text-xs font-bold text-indigo-200 transition-all shadow-lg font-display">
+                        PŘIHLÁSIT / REGISTROVAT
+                    </button>
+                `;
+            }
+        }
+
+        async function login(loginName, password) {
+            console.log('Attempting login to:', `${API_BASE}/login`, { login: loginName });
+            try {
+                const res = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: loginName, password })
+                });
+
+                const text = await res.text();
+                console.log('Login response status:', res.status);
+                console.log('Login response body:', text);
+
+                if (!res.ok) {
+                    let errorMessage = 'Chyba přihlášení';
+                    try {
+                        const errorData = JSON.parse(text);
+                        errorMessage = errorData.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = `Chyba ${res.status}: ${text || 'Prázdná odpověď'}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                const data = JSON.parse(text);
+                authState.user = data.user;
+                localStorage.setItem('kiki_user', JSON.stringify(authState.user));
+                updateAuthUI();
+                closeAuthModal();
+            } catch (e) {
+                console.error('Login error:', e);
+                showError(e.message);
+            }
+        }
+
+        async function register(loginName, userName, password) {
+            console.log('Attempting register to:', `${API_BASE}/register`, { login: loginName, userName });
+            try {
+                const res = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: loginName, userName, password })
+                });
+
+                const text = await res.text();
+                console.log('Register response status:', res.status);
+
+                if (!res.ok) {
+                    let errorMessage = 'Chyba registrace';
+                    try {
+                        const errorData = JSON.parse(text);
+                        errorMessage = errorData.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = `Chyba ${res.status}: ${text || 'Prázdná odpověď'}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                showError('Registrace úspěšná! Nyní se přihlašte.', 'green');
+                setIsLoginMode(true);
+            } catch (e) {
+                console.error('Register error:', e);
+                showError(e.message);
+            }
+        }
+
+        function logout() {
+            authState.user = null;
+            localStorage.removeItem('kiki_user');
+            updateAuthUI();
+        }
+
+        // --- AUTH MODAL UI ---
+        let isLogin = true;
+
+        function openAuthModal() {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            setIsLoginMode(true);
+            document.getElementById('auth-error').innerText = '';
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function setIsLoginMode(loginMode) {
+            isLogin = loginMode;
+            document.getElementById('modal-title').innerText = isLogin ? 'PŘIHLÁŠENÍ' : 'REGISTRACE';
+            document.getElementById('btn-submit').innerText = isLogin ? 'PŘIHLÁSIT' : 'REGISTROVAT';
+            document.getElementById('field-username').style.display = isLogin ? 'none' : 'block';
+            document.getElementById('toggle-auth-text').innerHTML = isLogin ?
+                'Nemáte účet? <span class="text-purple-400 cursor-pointer hover:text-purple-300" onclick="setIsLoginMode(false)">Zaregistrujte se</span>' :
+                'Již máte účet? <span class="text-purple-400 cursor-pointer hover:text-purple-300" onclick="setIsLoginMode(true)">Přihlašte se</span>';
+            document.getElementById('auth-error').innerText = '';
+        }
+
+        function showError(msg, color = 'red') {
+            const el = document.getElementById('auth-error');
+            el.innerText = msg;
+            el.style.color = color === 'red' ? '#fca5a5' : '#86efac';
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const form = e.target;
+            const l = form.login.value;
+            const p = form.password.value;
+            const u = form.username.value;
+
+            if (isLogin) login(l, p);
+            else register(l, u, p);
+        }
+
         // --- INIT ---
         window.onload = () => {
             updateContent();
             typeEffect();
             initStarMap();
+            updateAuthUI(); // Init Auth
         };
-
     </script>
+
+    <!-- AUTH MODAL HTML -->
+    <div id="auth-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeAuthModal()"></div>
+        <div
+            class="relative w-full max-w-md bg-[#0b1221] border border-white/10 rounded-2xl shadow-2xl overflow-hidden p-6 animate-scale-reveal">
+            <h2 id="modal-title" class="text-2xl font-bold text-white mb-6 text-center font-display">PŘIHLÁŠENÍ</h2>
+            <div id="auth-error" class="mb-4 text-center text-sm min-h-[20px]"></div>
+            <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1 font-serif">Login</label>
+                    <input name="login" type="text"
+                        class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-purple-500 text-white transition-colors"
+                        required />
+                </div>
+                <div id="field-username" style="display:none;">
+                    <label class="block text-sm font-medium text-gray-400 mb-1 font-serif">Uživatelské jméno</label>
+                    <input name="username" type="text"
+                        class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-purple-500 text-white transition-colors" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1 font-serif">Heslo</label>
+                    <input name="password" type="password"
+                        class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-purple-500 text-white transition-colors"
+                        required />
+                </div>
+                <button id="btn-submit" type="submit"
+                    class="w-full py-3 mt-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-lg shadow-lg hover:shadow-purple-500/25 transition-all font-display">
+                    PŘIHLÁSIT
+                </button>
+            </form>
+            <div id="toggle-auth-text" class="mt-6 text-center text-sm text-gray-400 font-serif"></div>
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
+        </div>
+    </div>
+
 </body>
 
 </html>

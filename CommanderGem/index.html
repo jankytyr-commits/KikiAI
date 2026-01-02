@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="cs">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kikimmander</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <header>
+    <h1>Kikimmander</h1>
+
+    <div class="searchbar" id="searchBar">
+      <input id="searchInput" type="text" placeholder="Hledat text... (case-insensitive)" />
+      <label><input id="searchRecursive" type="checkbox" /> rekurzivně</label>
+      <label><input id="searchTextOnly" type="checkbox" checked /> jen textové</label>
+      <button id="searchLeft">Hledat v levém</button>
+      <button id="searchRight">Hledat v pravém</button>
+      <button id="searchCancel" style="display:none">Zrušit</button>
+    </div>
+
+    <div class="toolbar">
+      <button id="pickLeft">Otevřít levý</button>
+      <button id="pickRight">Otevřít pravý</button>
+      <button id="refreshAll">Refresh</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel" id="leftPanel">
+      <div class="meta">
+        <div style="flex:1">
+          <div id="leftPath" class="path">Levý panel</div>
+        </div>
+        <div class="controls">
+          <button id="leftNewFile">Nový soubor</button>
+          <button id="leftNewDir">Nová složka</button>
+        </div>
+      </div>
+      <div id="leftList" class="list"></div>
+    </section>
+
+    <section class="panel" id="rightPanel">
+      <div class="meta">
+        <div style="flex:1">
+          <div id="rightPath" class="path">Pravý panel</div>
+        </div>
+        <div class="controls">
+          <button id="rightNewFile">Nový soubor</button>
+          <button id="rightNewDir">Nová složka</button>
+        </div>
+      </div>
+      <div id="rightList" class="list"></div>
+    </section>
+  </main>
+
+  <!-- Results panel -->
+  <div id="resultsPanel" class="modal" aria-hidden="true">
+    <div class="card small">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong>Výsledky hledání</strong>
+        <div style="display:flex;gap:8px">
+          <div id="resultsSummary" style="color:var(--muted)"></div>
+          <button id="resultsClear">Vyčistit</button>
+          <button id="resultsHide">Zavřít</button>
+        </div>
+      </div>
+      <div id="resultsList" style="margin-top:8px;max-height:55vh;overflow:auto"></div>
+    </div>
+  </div>
+
+  <!-- Metadata modal -->
+  <div id="metaModal" class="modal" aria-hidden="true">
+    <div class="card small">
+      <div class="meta">
+        <div style="flex:1"><strong>Metadata</strong>
+          <div id="metaTitle" style="font-size:13px;margin-top:4px"></div>
+        </div>
+        <div style="display:flex;gap:8px"><button id="metaClose">Zavřít</button></div>
+      </div>
+      <div id="metaContent" style="overflow:auto;max-height:60vh;padding-top:8px"></div>
+    </div>
+  </div>
+
+  <!-- Editor (viewer) modal -->
+  <div id="editorModal" class="modal" aria-hidden="true">
+    <div class="card" role="dialog" aria-modal="true">
+      <div class="meta">
+        <div style="flex:1">
+          <strong id="editorFilename">soubor.txt</strong>
+          <span id="editorPath" class="muted" style="margin-left:8px"></span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="downloadFile">Stáhnout</button>
+          <button id="saveFile">Uložit</button>
+          <button id="saveAsFile">Uložit jako</button>
+          <button id="viewAsText" style="display:none">Zobrazit jako text</button>
+          <button id="toggleFull">Maximalizovat</button>
+          <button id="closeEditor">Zavřít</button>
+        </div>
+      </div>
+
+      <img id="editorImage" alt="Náhled obrázku" />
+
+      <textarea id="editorArea" spellcheck="false" style="display:none"></textarea>
+
+      <div id="viewerPath" class="viewer-path" style="display:none"></div>
+      <div id="playerHelp" class="player-help" style="display:none"></div>
+
+    </div>
+  </div>
+
+  <!-- Skipped items modal -->
+  <div id="skippedModal" class="modal" aria-hidden="true">
+    <div class="card" style="width:720px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px">
+        <strong>Seznam přeskočených</strong>
+        <div><button id="skippedClose">Zavřít</button></div>
+      </div>
+      <div id="skippedList" style="max-height:60vh;overflow:auto"></div>
+    </div>
+  </div>
+
+  <div id="errorBar"
+    style="display:none;position:fixed;left:12px;right:12px;bottom:12px;background:linear-gradient(90deg,#0b1220,#07121a);border-radius:8px;padding:10px;align-items:center;z-index:200">
+    <div id="errorMsg" style="flex:1;color:var(--text)"></div>
+    <div style="margin-left:12px"><button id="errDismiss">OK</button></div>
+  </div>
+
+  <footer class="footer">
+    <div class="legend">
+      <div><strong>Klávesy:</strong></div>
+      <div>Enter = otevřít (zvýrazněný) · F2 = přejmenovat · F5 = kopírovat · F6 = přesunout · F8 = smazat · I =
+        info
+      </div>
+    </div>
+  </footer>
+
+  <script src="./jszip.min.js"></script>
+  <script src="./heic2any.min.js"></script>
+  <script src="./main.js"></script>
+
+</body>
+
+</html>

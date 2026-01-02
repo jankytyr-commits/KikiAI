@@ -12,6 +12,7 @@ public class KikiDbContext : DbContext
     public DbSet<ChatSessionEntity> ChatSessions { get; set; }
     public DbSet<MessageEntity> Messages { get; set; }
     public DbSet<ApiKeyEntity> ApiKeys { get; set; }
+    public DbSet<UserEntity> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,10 +50,31 @@ public class KikiDbContext : DbContext
             entity.Property(e => e.KeyValue).HasMaxLength(500);
             entity.HasIndex(e => new { e.Provider, e.IsActive });
         });
+
+        // User configuration
+        modelBuilder.Entity<UserEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Login).HasMaxLength(100).IsRequired();
+            entity.HasIndex(e => e.Login).IsUnique();
+            entity.Property(e => e.UserName).HasMaxLength(100);
+            entity.Property(e => e.PasswordHash).HasMaxLength(500);
+            entity.Property(e => e.UserType).HasMaxLength(50).HasDefaultValue("user");
+        });
     }
 }
 
 // Entity models
+public class UserEntity
+{
+    public int Id { get; set; }
+    public string Login { get; set; }
+    public string UserName { get; set; }
+    public string PasswordHash { get; set; }
+    public string UserType { get; set; } = "user";
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
 public class ChatSessionEntity
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();

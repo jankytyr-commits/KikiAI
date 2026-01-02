@@ -1,0 +1,12 @@
+{
+  "name": "commander-gem",
+  "version": "1.0.0",
+  "description": "Mini Total Commander clone",
+  "scripts": {
+    "build": "esbuild js/main.js --bundle --outfile=dist/main.js --format=iife",
+    "dev": "python -m http.server 8000"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.0"
+  }
+}
