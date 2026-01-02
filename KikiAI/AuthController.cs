@@ -25,12 +25,16 @@ public class AuthController : ControllerBase
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Login == request.Login);
         
         if (user == null)
-            return Unauthorized(new { message = "Nesprávné jméno nebo heslo." });
+        {
+            // Debug: list all users for troubleshooting
+            var allLogins = await _context.Users.Select(u => u.Login).ToListAsync();
+            return Unauthorized(new { message = "Nesprávné jméno nebo heslo.", debug = $"Existující loginy: {string.Join(", ", allLogins)}" });
+        }
 
         bool validPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
 
         if (!validPassword)
-            return Unauthorized(new { message = "Nesprávné jméno nebo heslo." });
+            return Unauthorized(new { message = "Nesprávné jméno nebo heslo.", debug = "Heslo neodpovídá" });
 
         // For now, returning user info. JWT or Cookie auth can be added later.
         return Ok(new 
@@ -79,6 +83,48 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(password)) return BadRequest();
         return Ok(BCrypt.Net.BCrypt.HashPassword(password));
     }
+
+    // Reset password for a user (TEMPORARY - remove in production)
+    [HttpGet("reset-password")]
+    public async Task<IActionResult> ResetPasswordGet(string login, string newPassword)
+    {
+        if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(newPassword))
+            return BadRequest(new { message = "Chybí údaje." });
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Login == login);
+        if (user == null)
+        {
+            var allLogins = await _context.Users.Select(u => u.Login).ToListAsync();
+            return NotFound(new { message = $"Uživatel '{login}' nenalezen.", existingLogins = allLogins });
+        }
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { success = true, message = $"Heslo pro '{login}' bylo resetováno." });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        if (string.IsNullOrEmpty(request.Login) || string.IsNullOrEmpty(request.NewPassword))
+            return BadRequest(new { message = "Chybí údaje." });
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Login == request.Login);
+        if (user == null)
+            return NotFound(new { message = $"Uživatel '{request.Login}' nenalezen." });
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { success = true, message = $"Heslo pro '{request.Login}' bylo resetováno." });
+    }
+}
+
+public class ResetPasswordRequest
+{
+    public string Login { get; set; }
+    public string NewPassword { get; set; }
 }
 
 public class LoginRequest

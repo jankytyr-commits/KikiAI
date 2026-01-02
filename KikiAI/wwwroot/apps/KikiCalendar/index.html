@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KikiCalendar Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Cormorant Garamond"', 'serif'],
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        display: ['"Cinzel Decorative"', 'cursive'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020410;
+            color: #ffffff;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 18px;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        .font-display {
+            font-family: 'Cinzel Decorative', cursive;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-cosmic {
+            background: linear-gradient(135deg, #4f46e5, #9333ea);
+            font-family: 'Cinzel Decorative', cursive;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-cosmic:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        pre {
+            background: rgba(0, 0, 0, 0.5);
+            color: #2dd4bf;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            border: 1px solid rgba(45, 212, 191, 0.2);
+        }
+
+        #star-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen p-4 md:p-8">
+    <canvas id="star-canvas"></canvas>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+        <header class="flex justify-between items-center mb-12 border-b border-white/10 pb-6">
+            <div>
+                <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-white">
+                    KikiCalendar <span class="text-indigo-400">2026</span>
+                </h1>
+                <p class="text-indigo-200/60 mt-2 font-serif italic text-lg tracking-wide">Astronomical & Generative Art
+                    Toolchain</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="user-info" class="text-white/60 text-sm font-serif"></div>
+                <button onclick="logout()"
+                    class="px-5 py-2 rounded-full bg-rose-500/20 border border-rose-500/30 hover:bg-rose-500/30 text-xs font-bold text-rose-300 transition-all uppercase tracking-widest">Odhlásit</button>
+                <a href="../../"
+                    class="px-6 py-2 rounded-full border border-white/20 hover:bg-white/10 transition-colors flex items-center gap-3 group">
+                    <span class="text-white/60 group-hover:text-white transition-colors">← Back to Nexus</span>
+                </a>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <!-- Left: Controls -->
+            <div class="lg:col-span-4 space-y-8">
+                <!-- Data Generator -->
+                <div class="glass-panel p-8 rounded-[2rem]">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                        <span class="text-3xl opacity-80">🔭</span> Data Orbit
+                    </h2>
+                    <div class="space-y-6">
+                        <div>
+                            <label
+                                class="block text-sm text-indigo-300/70 mb-2 uppercase tracking-widest font-bold">Target
+                                Year</label>
+                            <input type="number" id="gen-year" value="2026"
+                                class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                        </div>
+                        <button
+                            onclick="runScript('generator_dat.py', `--year ${document.getElementById('gen-year').value}`)"
+                            class="w-full btn-cosmic py-3 rounded-xl font-bold text-sm tracking-widest uppercase">
+                            Calculate Ephemeris
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Image Generator -->
+                <div class="glass-panel p-8 rounded-[2rem]">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                        <span class="text-3xl opacity-80">✨</span> Visual Forge
+                    </h2>
+                    <div class="space-y-6">
+                        <div>
+                            <label
+                                class="block text-sm text-indigo-300/70 mb-2 uppercase tracking-widest font-bold">Week
+                                Range</label>
+                            <input type="text" id="img-weeks" placeholder="e.g. 1, 10-15"
+                                class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                        </div>
+                        <label class="flex items-center gap-3 text-sm text-indigo-200/60 cursor-pointer group">
+                            <input type="checkbox" id="img-force"
+                                class="w-4 h-4 rounded border-white/10 bg-white/5 checked:bg-indigo-600 transition-all">
+                            <span class="group-hover:text-white">Overwrite existing artifacts</span>
+                        </label>
+                        <button onclick="runImageGen()"
+                            class="w-full btn-cosmic py-3 rounded-xl font-bold text-sm tracking-widest uppercase">
+                            Ignite AI Engine
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PDF Assembly -->
+                <div class="glass-panel p-8 rounded-[2rem]">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                        <span class="text-3xl opacity-80">📚</span> Final Codex
+                    </h2>
+                    <button onclick="runScript('generator_layoutu.py', '')"
+                        class="w-full btn-cosmic py-3 rounded-xl font-bold text-sm tracking-widest uppercase">
+                        Assemble PDF
+                    </button>
+                </div>
+
+                <!-- Console -->
+                <div class="glass-panel p-6 rounded-[2rem] h-80 flex flex-col">
+                    <h3 class="text-xs font-bold mb-3 text-indigo-300/50 uppercase tracking-widest">Chronicle Subsystem
+                    </h3>
+                    <pre id="console" class="flex-grow overflow-auto scroll-smooth"></pre>
+                </div>
+            </div>
+
+            <!-- Right: Browser -->
+            <div class="lg:col-span-8 space-y-8">
+                <div class="glass-panel p-8 rounded-[2.5rem] min-h-[850px] flex flex-col">
+                    <nav class="flex justify-between items-center mb-10 border-b border-white/5 pb-6">
+                        <div class="flex gap-8">
+                            <button onclick="viewCategory('images')" id="tab-images"
+                                class="pb-2 border-b-2 border-indigo-400 font-display text-lg tracking-wider text-white">Portraits</button>
+                            <button onclick="viewCategory('backgrounds')" id="tab-backgrounds"
+                                class="pb-2 border-b-2 border-transparent text-white/40 hover:text-white transition-colors font-display text-lg tracking-wider">Atmosphere</button>
+                            <button onclick="viewCategory('icons')" id="tab-icons"
+                                class="pb-2 border-b-2 border-transparent text-white/40 hover:text-white transition-colors font-display text-lg tracking-wider">Symbols</button>
+                            <button onclick="viewCategory('outputs')" id="tab-outputs"
+                                class="pb-2 border-b-2 border-transparent text-white/40 hover:text-white transition-colors font-display text-lg tracking-wider">Codices</button>
+                        </div>
+                        <button onclick="refreshAssets()"
+                            class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">
+                            <span class="text-xl">🔄</span>
+                        </button>
+                    </nav>
+
+                    <div id="asset-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                        <!-- Assets injected here -->
+                    </div>
+                    <div id="empty-state"
+                        class="hidden flex-grow flex flex-col items-center justify-center text-white/20">
+                        <span class="text-6xl mb-4">🌑</span>
+                        <p class="font-display">The void is empty</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Preview Modal -->
+    <div id="preview-modal"
+        class="fixed inset-0 bg-black/80 hidden z-[100] flex items-center justify-center p-4 md:p-12 backdrop-blur-md">
+        <div class="absolute inset-0" onclick="closePreview()"></div>
+        <div id="modal-container"
+            class="relative glass-panel w-full max-w-6xl h-full max-h-[90vh] flex flex-col rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] transition-all duration-500">
+            <!-- Header -->
+            <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                <div class="flex items-center gap-4">
+                    <span id="modal-icon" class="text-3xl">📄</span>
+                    <div>
+                        <h3 id="modal-filename" class="font-display text-lg tracking-wider text-white">filename.ext</h3>
+                        <p id="modal-meta" class="text-[10px] uppercase tracking-[0.2em] text-indigo-400 font-bold">
+                            Artifact Preview</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleMaximize()"
+                        class="p-2 w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors text-white/60"
+                        title="Maximize">⛶</button>
+                    <button onclick="closePreview()"
+                        class="p-2 w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors text-white/60 text-3xl">&times;</button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div id="modal-body" class="flex-grow overflow-auto bg-black/40 flex items-center justify-center relative">
+                <!-- Content will be injected here -->
+                <div id="modal-loader"
+                    class="absolute inset-0 flex items-center justify-center bg-black/60 z-10 hidden">
+                    <div class="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-white/10 flex justify-between items-center bg-white/5">
+                <div id="modal-status" class="text-[10px] text-white/20 uppercase tracking-widest font-bold px-4">Ready
+                </div>
+                <div class="flex gap-3">
+                    <a id="btn-download" href="#" download
+                        class="px-6 py-2 bg-indigo-500/20 hover:bg-indigo-500/40 border border-indigo-500/30 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all text-indigo-300">Download</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAssets = {};
+
+        async function refreshAssets() {
+            try {
+                const res = await fetch('/api/calendar/assets');
+                currentAssets = await res.json();
+                viewCategory(currentAssets.lastCat || 'images');
+            } catch (err) {
+                console.error("Failed to load assets", err);
+            }
+        }
+
+        function viewCategory(cat) {
+            currentAssets.lastCat = cat;
+            const grid = document.getElementById('asset-grid');
+            const empty = document.getElementById('empty-state');
+            grid.innerHTML = '';
+
+            ['images', 'backgrounds', 'icons', 'outputs'].forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                el.classList.remove('border-indigo-400', 'text-white');
+                el.classList.add('border-transparent', 'text-white/40');
+            });
+            document.getElementById(`tab-${cat}`).classList.add('border-indigo-400', 'text-white');
+            document.getElementById(`tab-${cat}`).classList.remove('border-transparent', 'text-white/40');
+
+            let items = [];
+            if (cat === 'outputs') {
+                items = [...(currentAssets.pdfs || []), ...(currentAssets.jsons || [])];
+                if (items.length === 0) empty.classList.remove('hidden'); else empty.classList.add('hidden');
+
+                items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'glass-panel p-6 rounded-3xl flex flex-col items-center justify-center hover:translate-y-[-4px] transition-transform cursor-pointer group';
+                    const isPdf = item.name.endsWith('.pdf');
+                    const url = `/api/calendar/${isPdf ? 'preview' : 'json'}/${item.name}`;
+                    const modDate = item.modified ? new Date(item.modified).toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                    card.innerHTML = `
+                        <div class="text-5xl mb-4 group-hover:scale-110 transition-transform">${isPdf ? '📕' : '📑'}</div>
+                        <div class="text-sm font-bold truncate w-full mb-1 text-center">${item.name}</div>
+                        <div class="text-[11px] text-white/30 tracking-widest uppercase font-bold">${(item.size / 1024 / 1024).toFixed(2)} MB</div>
+                        <div class="text-[10px] text-indigo-300/50 mt-1">${modDate}</div>
+                        <button onclick="openPreview('${url}', '${item.name}')" class="mt-4 py-2 px-6 bg-indigo-500/20 text-indigo-300 rounded-full text-xs hover:bg-indigo-500/40 transition-colors uppercase font-bold tracking-widest">Access</button>
+                    `;
+                    grid.appendChild(card);
+                });
+                return;
+            }
+
+            items = currentAssets[cat] || [];
+            if (items.length === 0) empty.classList.remove('hidden'); else empty.classList.add('hidden');
+
+            const folder = cat === 'images' ? 'kalendar_obrazky' : cat;
+
+            items.forEach(asset => {
+                const card = document.createElement('div');
+                card.className = 'group relative glass-panel rounded-[2rem] overflow-hidden aspect-[9/16] cursor-pointer ring-1 ring-white/10 hover:ring-white/30 transition-all';
+                if (cat !== 'images') card.classList.remove('aspect-[9/16]');
+                if (cat !== 'images') card.classList.add('aspect-square');
+
+                const url = `/api/calendar/files/${folder}/${asset.name}`;
+                card.innerHTML = `
+                    <div class="absolute inset-0 bg-indigo-900/20"></div>
+                    <img src="${url}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110 group-hover:opacity-100 opacity-80" loading="lazy">
+                    <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
+                        <p class="text-[10px] font-bold tracking-widest uppercase text-indigo-200">${asset.name}</p>
+                    </div>
+                `;
+                card.onclick = () => openPreview(url, asset.name);
+                grid.appendChild(card);
+            });
+        }
+
+        let isMaximized = false;
+        function toggleMaximize() {
+            const container = document.getElementById('modal-container');
+            isMaximized = !isMaximized;
+            if (isMaximized) {
+                container.classList.remove('max-w-6xl', 'h-full', 'max-h-[90vh]');
+                container.classList.add('max-w-full', 'h-screen', 'fixed', 'inset-0', 'rounded-none');
+            } else {
+                container.classList.add('max-w-6xl', 'h-full', 'max-h-[90vh]');
+                container.classList.remove('max-w-full', 'h-screen', 'fixed', 'inset-0', 'rounded-none');
+            }
+        }
+
+        async function openPreview(url, name) {
+            const modal = document.getElementById('preview-modal');
+            const body = document.getElementById('modal-body');
+            const icon = document.getElementById('modal-icon');
+            const filename = document.getElementById('modal-filename');
+            const loader = document.getElementById('modal-loader');
+            const btnDownload = document.getElementById('btn-download');
+            const status = document.getElementById('modal-status');
+
+            filename.textContent = name;
+            modal.classList.remove('hidden');
+            body.innerHTML = '';
+            loader.classList.remove('hidden');
+            status.textContent = 'Loading...';
+            btnDownload.href = url;
+
+            const ext = name.split('.').pop().toLowerCase();
+
+            try {
+                if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) {
+                    icon.textContent = '🖼️';
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.className = 'max-w-full max-h-full object-contain rounded-xl shadow-2xl transition-all duration-700';
+                    img.onload = () => { loader.classList.add('hidden'); status.textContent = 'Image Ready'; };
+                    body.appendChild(img);
+                } else if (ext === 'pdf') {
+                    icon.textContent = '📕';
+                    const iframe = document.createElement('iframe');
+                    iframe.src = url;
+                    iframe.style.width = '100%';
+                    iframe.style.height = 'calc(90vh - 180px)';
+                    iframe.style.border = 'none';
+                    iframe.style.borderRadius = '1rem';
+                    iframe.onload = () => { loader.classList.add('hidden'); status.textContent = 'PDF Preview'; };
+                    body.appendChild(iframe);
+                } else if (['json', 'py', 'txt', 'htm', 'html'].includes(ext)) {
+                    icon.textContent = (ext === 'json') ? '📑' : '📜';
+                    const res = await fetch(url);
+                    const text = await res.text();
+                    const pre = document.createElement('pre');
+                    pre.className = 'w-full h-full overflow-auto p-8 text-emerald-400 font-mono text-xs bg-black/20 leading-relaxed';
+                    if (ext === 'json') {
+                        try {
+                            const obj = JSON.parse(text);
+                            pre.textContent = JSON.stringify(obj, null, 4);
+                        } catch (e) { pre.textContent = text; }
+                    } else {
+                        pre.textContent = text;
+                    }
+                    body.appendChild(pre);
+                    loader.classList.add('hidden');
+                    status.textContent = 'Source Document Ready';
+                } else {
+                    icon.textContent = '📄';
+                    body.innerHTML = `<div class="text-white/40 text-center"><p class="text-6xl mb-4">🚫</p><p class="font-display">Preview not available for .${ext} files</p></div>`;
+                    loader.classList.add('hidden');
+                    status.textContent = 'Unsupported Type';
+                }
+            } catch (err) {
+                body.innerHTML = `<div class="text-rose-400 text-center p-12"><p class="text-4xl mb-4">⚠️</p><p class="font-bold mb-2">Failed to load content</p><p class="text-xs opacity-60">${err.message}</p></div>`;
+                loader.classList.add('hidden');
+                status.textContent = 'Error';
+            }
+        }
+
+        function closePreview() {
+            document.getElementById('preview-modal').classList.add('hidden');
+            if (isMaximized) toggleMaximize(); // Reset zoom state
+        }
+
+        async function runScript(script, args) {
+            const consoleEl = document.getElementById('console');
+            consoleEl.innerHTML += `<div class="text-indigo-400 mt-2">✨ Initiating ${script}...</div>`;
+
+            try {
+                const res = await fetch('/api/calendar/run-script', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Script: script, Arguments: args })
+                });
+
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    consoleEl.innerHTML += `<div class="text-rose-400 mt-1">⚠️ System Error (Non-JSON): ${text}</div>`;
+                    return;
+                }
+
+                if (data.output) consoleEl.innerHTML += `<div class="text-emerald-400/80">${data.output.replace(/\n/g, '<br>')}</div>`;
+                if (data.error) consoleEl.innerHTML += `<div class="text-rose-400 mt-1">⚠️ Error: ${data.error}</div>`;
+                consoleEl.scrollTo(0, consoleEl.scrollHeight);
+                refreshAssets();
+            } catch (e) {
+                consoleEl.innerHTML += `<div class="text-rose-500 font-bold">CRITICAL FAILURE: ${e.message}</div>`;
+            }
+        }
+
+        function runImageGen() {
+            const weeks = document.getElementById('img-weeks').value;
+            const force = document.getElementById('img-force').checked;
+            let args = weeks ? `--weeks ${weeks}` : '';
+            if (force) args += ' --force';
+            runScript('generování_obrázků.py', args);
+        }
+
+        // --- STAR MAP ANIMATION ---
+        function initStarMap() {
+            const canvas = document.getElementById('star-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            const resize = () => { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; };
+            window.addEventListener('resize', resize);
+            resize();
+
+            const STAR_COUNT = 300;
+            const stars = [];
+            const COLORS = ['#818cf8', '#c084fc', '#2dd4bf', '#fbbf24'];
+            for (let i = 0; i < STAR_COUNT; i++) {
+                const isActive = Math.random() < 0.1;
+                stars.push({
+                    x: (Math.random() - 0.5) * 2000,
+                    y: (Math.random() - 0.5) * 2000,
+                    z: Math.random() * 2000,
+                    size: isActive ? Math.random() * 2 + 1 : Math.random() * 0.5 + 0.5,
+                    active: isActive,
+                    color: isActive ? COLORS[Math.floor(Math.random() * COLORS.length)] : '#ffffff',
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+
+            let lastTime = 0;
+            function animate(time) {
+                const dt = (time - lastTime) / 1000;
+                lastTime = time;
+                ctx.fillStyle = '#020410';
+                ctx.fillRect(0, 0, width, height);
+
+                const cx = width / 2;
+                const cy = height / 2;
+
+                stars.forEach(s => {
+                    s.z -= 50 * dt;
+                    if (s.z <= 0) s.z = 2000;
+
+                    const scale = 800 / s.z;
+                    const x2d = s.x * scale + cx;
+                    const y2d = s.y * scale + cy;
+
+                    if (x2d >= 0 && x2d <= width && y2d >= 0 && y2d <= height) {
+                        const alpha = Math.min(1, (2000 - s.z) / 500);
+                        const twinkle = s.active ? (Math.sin(time / 500 + s.phase) * 0.5 + 0.5) : 1;
+                        ctx.fillStyle = s.color;
+                        ctx.globalAlpha = alpha * twinkle;
+                        ctx.beginPath();
+                        ctx.arc(x2d, y2d, s.size * scale, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+
+                requestAnimationFrame(animate);
+            }
+            requestAnimationFrame(animate);
+        }
+
+        // --- AUTH ---
+        function checkAuth() {
+            const userData = localStorage.getItem('kiki_user');
+            if (!userData) {
+                window.location.href = '../../?login=1';
+                return false;
+            }
+            try {
+                const user = JSON.parse(userData);
+                document.getElementById('user-info').textContent = user.userName || user.login || 'Uživatel';
+                return true;
+            } catch (e) {
+                window.location.href = '../../?login=1';
+                return false;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('kiki_user');
+            window.location.href = '../../';
+        }
+
+        window.onload = () => {
+            if (!checkAuth()) return;
+            initStarMap();
+            refreshAssets();
+        };
+
+    </script>
+</body>
+
+</html>

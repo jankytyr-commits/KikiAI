@@ -692,7 +692,14 @@
             updateContent();
             typeEffect();
             initStarMap();
-            updateAuthUI(); // Init Auth
+            updateAuthUI();
+
+            // Auto-open login modal if redirected from protected page
+            if (window.location.search.includes('login=1')) {
+                openAuthModal();
+                // Clean up URL
+                history.replaceState(null, '', window.location.pathname);
+            }
         };
     </script>
 

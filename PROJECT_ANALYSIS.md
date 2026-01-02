@@ -139,11 +139,14 @@ A specialized toolchain for generating a printable, graphically rich yearly cale
   * Determines "Garden" types (Leaf, Fruit, Root, Flower) based on Moon zodiac signs (biodynamics).
   * Generates weekly advice texts and tracks holidays/name days.
   * Outputs a massive JSON dataset (`kalendar_2026_full.json`).
-* **Image Generation (`generování_obrázků.py`):**
-  * Uses **Google GenAI (Imagen 3/4)** to generate thematic images for each week based on prompts stored in the JSON data.
-  * Saves images to `kalendar_obrazky/`.
-* **PDF Compositing (`generator_layoutu.py` - inferred):**
-  * Likely combines the JSON data and generated images into a final print-ready PDF (`kalendar_2026_FINAL_LAYOUT.pdf`).
+* **Visual Asset Generation:**
+  * **Weekly Images (`generování_obrázků.py`)**: Thematic 9:16 images using Google GenAI (Imagen 4).
+  * **Monthly Backgrounds (`generator_pozadi.py`)**: 12 soft botanical backgrounds with "White Blend" for readability.
+  * **Icons (`generator_ikon.py`)**: Watercolor icons for moon phases and garden types.
+* **PDF Compositing (`generator_layoutu.py`):**
+  * Uses **ReportLab** (Python) to assemble the final print-ready PDF.
+  * Implements 12 distinct PageTemplates with monthly background switching.
+  * Complex table layout integrating images, icons, and dynamic text.
 
 ---
 

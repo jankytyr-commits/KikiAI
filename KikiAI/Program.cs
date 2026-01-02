@@ -117,16 +117,19 @@ if (!app.Environment.IsDevelopment())
 {
     app.Use(async (context, next) =>
     {
-        var path = context.Request.Path.Value?.ToLower();
-        if (path != null && (
-            (path.EndsWith(".json") && !path.Contains("/stories.json")) || 
-            path.EndsWith(".dll") || 
-            path.EndsWith(".config") || 
-            path.EndsWith(".pdb") || 
-            path.EndsWith(".exe") || 
-            path.EndsWith(".deps.json") || 
-            path.EndsWith(".runtimeconfig.json")
-        ))
+        var path = context.Request.Path.Value?.ToLower() ?? "";
+        
+        // Always allow API routes
+        if (path.StartsWith("/api/"))
+        {
+            await next();
+            return;
+        }
+
+        // Block specific sensitive static extensions
+        var blockedExtensions = new[] { ".dll", ".config", ".pdb", ".exe", ".deps.json", ".runtimeconfig.json" };
+        if (blockedExtensions.Any(ext => path.EndsWith(ext)) || 
+            (path.EndsWith(".json") && !path.EndsWith("/stories.json")))
         {
             context.Response.StatusCode = 403;
             return;

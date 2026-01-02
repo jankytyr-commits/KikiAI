@@ -1,25 +1,24 @@
 import json
 import os
 import datetime
+import argparse
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph, Spacer, PageBreak, BaseDocTemplate, PageTemplate, Frame, NextPageTemplate
+from reportlab.platypus import Table, TableStyle, Image, Paragraph, Spacer, PageBreak, BaseDocTemplate, PageTemplate, Frame, NextPageTemplate
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.units import cm
 
 # --- KONFIGURACE ---
-INPUT_JSON = "kalendar_2026_full.json"
+DEFAULT_INPUT_JSON = "kalendar_2026_full.json"
 IMAGE_FOLDER = "kalendar_obrazky"
 ICON_FOLDER = "icons"
 BG_FOLDER = "backgrounds"
-OUTPUT_PDF = "kalendar_2026_FINAL_12BG.pdf"
+DEFAULT_OUTPUT_PDF = "kalendar_2026_FINAL_12BG.pdf"
 LOCAL_FONT_FILE = "DejaVuSans.ttf" 
 
-# --- FUNKCE PRO VYKRESLENÍ POZADÍ ---
 def draw_bg_wrapper(bg_filename):
-    """Vrátí funkci, která vykreslí konkrétní obrázek. Potřeba pro ReportLab šablony."""
     def draw_bg(canvas, doc):
         canvas.saveState()
         bg_path = os.path.join(BG_FOLDER, bg_filename)
@@ -29,7 +28,7 @@ def draw_bg_wrapper(bg_filename):
         canvas.restoreState()
     return draw_bg
 
-def create_pdf():
+def create_pdf(input_json=DEFAULT_INPUT_JSON, output_pdf=DEFAULT_OUTPUT_PDF, specific_weeks=None):
     if os.path.exists(LOCAL_FONT_FILE):
         try:
             pdfmetrics.registerFont(TTFont('DejaVu', LOCAL_FONT_FILE))
@@ -38,24 +37,30 @@ def create_pdf():
     else: FONT_NAME = 'Helvetica'
 
     try:
-        with open(INPUT_JSON, "r", encoding="utf-8") as f: weeks = json.load(f)
-    except: return
+        with open(input_json, "r", encoding="utf-8") as f: 
+            weeks = json.load(f)
+    except Exception as e:
+        print(f"Chyba při načítání JSON: {e}")
+        return
 
-    # --- PŘÍPRAVA DOKUMENTU A 12 ŠABLON ---
-    doc = BaseDocTemplate(OUTPUT_PDF, pagesize=landscape(A4),
+    if specific_weeks:
+        weeks = [w for w in weeks if w['week_number'] in specific_weeks]
+
+    if not weeks:
+        print("Žádná data pro vytvoření PDF.")
+        return
+
+    doc = BaseDocTemplate(output_pdf, pagesize=landscape(A4),
                           leftMargin=0.5*cm, rightMargin=0.5*cm,
                           topMargin=0.5*cm, bottomMargin=0.5*cm)
 
     frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id='normal')
 
-    # Dynamické vytvoření 12 šablon (Month_01 ... Month_12)
     templates = []
     for i in range(1, 13):
         bg_file = f"bg_{i:02d}.jpg"
-        # Vytvoříme PageTemplate, který použije funkci draw_bg_wrapper pro daný soubor
         tmpl = PageTemplate(id=f'Month_{i:02d}', frames=frame, onPage=draw_bg_wrapper(bg_file))
         templates.append(tmpl)
-
     doc.addPageTemplates(templates)
 
     styles = getSampleStyleSheet()
@@ -68,44 +73,30 @@ def create_pdf():
     def get_icon_tag(filename):
         if not filename: return ""
         path = os.path.join(ICON_FOLDER, filename)
-        if os.path.exists(path) and os.path.isfile(path):
+        if os.path.exists(path):
             return f'<img src="{path}" width="12" height="12" valign="-2"/> '
         return ""
 
     elements = []
-
-    print("Generuji PDF s 12 měsíčními pozadími...")
+    print(f"Generuji PDF: {output_pdf} (týdnů: {len(weeks)})...")
     
     for week in weeks:
-        # 1. Zjistit měsíc pro tento týden (podle prvního dne v týdnu)
         date_obj = datetime.datetime.strptime(week['days'][0]['date_full'], "%Y-%m-%d")
-        month_num = date_obj.month
-        
-        # 2. Přepnout šablonu (NextPageTemplate aplikuje změnu na TUTO stránku, pokud jsme na začátku)
-        elements.append(NextPageTemplate(f'Month_{month_num:02d}'))
-
-        # --- OBSAH ---
-        week_num = week["week_number"]
-        img_path = f"{IMAGE_FOLDER}/tyden_{week_num:02d}.png"
+        elements.append(NextPageTemplate(f'Month_{date_obj.month:02d}'))
 
         elements.append(Paragraph(f"<b>{week.get('header_title', '')}</b>", title_style))
         elements.append(Paragraph(f"<i>{week.get('header_info', '')}</i>", subtitle_style))
         
+        week_num = week["week_number"]
+        img_path = f"{IMAGE_FOLDER}/tyden_{week_num:02d}.png"
         left_content = []
         if os.path.exists(img_path):
-            img = Image(img_path, width=9*cm, height=15.5*cm) 
-            left_content.append(img)
+            left_content.append(Image(img_path, width=9*cm, height=15.5*cm))
         else:
-            left_content.append(Paragraph("Obrázek chybí", title_style))
+            left_content.append(Paragraph(f"Obrázek týdne {week_num} chybí", title_style))
 
-        # Sloupce
         col_widths = [1.2*cm, 0.8*cm, 3.2*cm, 2.3*cm, 3.5*cm, 1.8*cm, 2.6*cm, 2.5*cm]
-        header_row = [
-            Paragraph("Datum", header_style), Paragraph("Den", header_style),
-            Paragraph("Svátek", header_style), Paragraph("Slunce", header_style),
-            Paragraph("Měsíc (Znamení Fáze)", header_style), Paragraph("Zahrada", header_style),
-            Paragraph("Čínský den", header_style), Paragraph("Poznámka", header_style)
-        ]
+        header_row = [Paragraph(t, header_style) for t in ["Datum", "Den", "Svátek", "Slunce", "Měsíc", "Zahrada", "Čína", "Poznámka"]]
         data_rows = [header_row]
 
         for day in week["days"]:
@@ -114,80 +105,54 @@ def create_pdf():
             svatek = f"<b>{day['holiday']}</b><br/>{day['name_day']}" if day['holiday'] else day['name_day']
             slunce = f"{day.get('sun_rise','')} – {day.get('sun_set','')}"
             
-            # Měsíc
-            m_phase, m_sign = day['moon']['phase'], day['moon']['sign']
-            m_icon_file = "moon_nov.png"
-            if "Úplněk" in m_phase: m_icon_file = "moon_uplnek.png"
-            elif "Dorůstá" in m_phase: m_icon_file = "moon_dorusta.png"
-            elif "Couvá" in m_phase: m_icon_file = "moon_couva.png"
-            moon_html = f"<b>{m_sign}</b> {get_icon_tag(m_icon_file)} {m_phase}"
+            m = day['moon']
+            m_icon = "moon_nov.png"
+            if "Úplněk" in m['phase']: m_icon = "moon_uplnek.png"
+            elif "Dorůstá" in m['phase']: m_icon = "moon_dorusta.png"
+            elif "Couvá" in m['phase']: m_icon = "moon_couva.png"
+            moon_html = f"<b>{m['sign']}</b> {get_icon_tag(m_icon)} {m['phase']}"
             
-            # Zahrada
-            g_type = day['moon']['garden_type']
-            g_icon_file = ""
-            if "Plod" in g_type: g_icon_file = "garden_plod.png"
-            elif "Kořen" in g_type: g_icon_file = "garden_koren.png"
-            elif "List" in g_type: g_icon_file = "garden_list.png"
-            elif "Květ" in g_type: g_icon_file = "garden_kvet.png"
-            garden_html = f"{get_icon_tag(g_icon_file)} <b>{g_type}</b>"
+            g = day['moon']['garden_type']
+            g_icon = f"garden_{g.lower().replace('ě','e').replace('ř','r')}.png" if g != "-" else ""
+            # Manual mapping for safety
+            g_map = {"Plod":"garden_plod.png", "Kořen":"garden_koren.png", "List":"garden_list.png", "Květ":"garden_kvet.png"}
+            g_icon = g_map.get(day['moon']['garden_type'], "")
+            garden_html = f"{get_icon_tag(g_icon)} <b>{day['moon']['garden_type']}</b>"
             
-            # Čína
-            china = day['chinese']
-            china_txt = f"{china['animal']} / {china['element']}" if isinstance(china, dict) else str(china)
-
-            # Poznámka
-            note_raw = day.get('note', '')
-            n_text, n_type = "", "none"
-            if isinstance(note_raw, dict):
-                n_text, n_type = note_raw.get('text', ''), note_raw.get('type', 'none')
-            else:
-                n_text = str(note_raw)
-            
-            if n_type == "holiday": note_style = f"<font color='red'><b>{n_text}</b></font>"
-            elif n_type == "special": note_style = f"<font color='blue'>{n_text}</font>"
-            elif n_type == "astro": note_style = f"<font color='grey'><i>{n_text}</i></font>"
-            else: note_style = n_text
-            
-            row = [
-                Paragraph(datum, cell_style), Paragraph(den, cell_style),
-                Paragraph(svatek, cell_style), Paragraph(slunce, cell_style),
-                Paragraph(moon_html, cell_style), Paragraph(garden_html, cell_style),
-                Paragraph(china_txt, cell_style), Paragraph(note_style, cell_style)
-            ]
+            row = [Paragraph(datum, cell_style), Paragraph(den, cell_style), Paragraph(svatek, cell_style),
+                   Paragraph(slunce, cell_style), Paragraph(moon_html, cell_style), Paragraph(garden_html, cell_style),
+                   Paragraph(f"{day['chinese']['animal']}/{day['chinese']['element']}", cell_style), Paragraph(str(day.get('note','')), cell_style)]
             data_rows.append(row)
 
-        num_days = len(week["days"])
-        row_heights = [0.8*cm] + [1.95*cm] * num_days
+        rt = Table(data_rows, colWidths=col_widths, rowHeights=[0.8*cm]+[1.95*cm]*len(week["days"]))
+        rt.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 0.25, colors.grey), ('BACKGROUND', (0,0), (-1,-1), colors.white), ('VALIGN', (0,0), (-1,-1), 'TOP')]))
 
-        right_table = Table(data_rows, colWidths=col_widths, rowHeights=row_heights)
-        right_table.setStyle(TableStyle([
-            ('TEXTCOLOR', (0,0), (-1,-1), colors.black),
-            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('GRID', (0,0), (-1,-1), 0.25, colors.grey),
-            # Pozadí tabulky BÍLÉ, aby byl text čitelný i na barevném pozadí
-            ('BACKGROUND', (0,0), (-1,-1), colors.white), 
-            ('fontName', (0,0), (-1,-1), FONT_NAME),
-            ('fontSize', (0,0), (-1,-1), 8),
-            ('TOPPADDING', (0,0), (-1,-1), 4),
-            ('LEFTPADDING', (0,0), (-1,-1), 2),
-            ('RIGHTPADDING', (0,0), (-1,-1), 2),
-        ]))
-
-        master_table = Table([[left_content, right_table]], colWidths=[9.5*cm, 18.5*cm])
-        master_table.setStyle(TableStyle([('VALIGN', (0,0), (-1,-1), 'TOP')]))
-        
-        elements.append(master_table)
+        master = Table([[left_content, rt]], colWidths=[9.5*cm, 18.5*cm])
+        elements.append(master)
         elements.append(Spacer(1, 0.2*cm))
-
         elements.append(Paragraph(week.get('footer_text', ''), footer_style))
         elements.append(PageBreak())
 
     try:
         doc.build(elements)
-        print(f"HOTOVO! PDF uloženo: {OUTPUT_PDF}")
+        print(f"HOTOVO! PDF uloženo: {output_pdf}")
     except Exception as e:
-        print(f"CHYBA: {e}")
+        print(f"CHYBA při tvorbě PDF: {e}")
 
 if __name__ == "__main__":
-    create_pdf()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", default=DEFAULT_INPUT_JSON)
+    parser.add_argument("--output", default=DEFAULT_OUTPUT_PDF)
+    parser.add_argument("--weeks", type=str)
+    args = parser.parse_args()
+    
+    w_filter = None
+    if args.weeks:
+        w_filter = set()
+        for p in args.weeks.split(','):
+            if '-' in p:
+                s, e = map(int, p.split('-'))
+                w_filter.update(range(s, e + 1))
+            else: w_filter.add(int(p))
+            
+    create_pdf(args.input, args.output, w_filter)
