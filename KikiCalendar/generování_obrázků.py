@@ -5,9 +5,12 @@ from pathlib import Path
 from google import genai
 from google.genai import types # Import typů pro nastavení bezpečnosti
 
+from config_loader import get_api_key
+
 # --- KONFIGURACE ---
-# VLOŽTE ZDE SVŮJ API KLÍČ
-API_KEY = "AIzaSyAW_ksUT4eJPqGIW8sKdEYNuaHb3uSlkUc" 
+API_KEY = get_api_key()
+if not API_KEY:
+    print("VĂťstraha: API_KEY nebyl nalezen v config.json!")
 INPUT_JSON = "kalendar_2026_full.json"
 OUTPUT_FOLDER = "kalendar_obrazky"
 # Pokud tento model nepůjde, zkuste "imagen-3.0-generate-001"

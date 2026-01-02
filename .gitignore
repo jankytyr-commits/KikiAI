@@ -49,6 +49,11 @@ claude_usage.json
 !KikiCalendar/*.py
 !KikiCalendar/*.js
 
+# KikiCalendar specific
+KikiCalendar/config.json
+!KikiCalendar/config.template.json
+KikiCalendar/.venv/
+
 # Env files
 .env
 .env.*

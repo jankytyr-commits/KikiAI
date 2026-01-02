@@ -4,8 +4,12 @@ import io
 from PIL import Image
 from google import genai
 
+from config_loader import get_api_key
+
 # --- KONFIGURACE ---
-API_KEY = "AIzaSyAW_ksUT4eJPqGIW8sKdEYNuaHb3uSlkUc" 
+API_KEY = get_api_key()
+if not API_KEY:
+    print("VĂťstraha: API_KEY nebyl nalezen v config.json!")
 OUTPUT_DIR = "backgrounds"
 MODEL_NAME = "imagen-4.0-fast-generate-001" 
 
