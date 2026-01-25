@@ -20,7 +20,7 @@ if not os.path.exists(OUTPUT_DIR):
 
 # --- PROMPTY: Styl "Vintage Botanical Stationery" ---
 # Chceme syté barvy, protože je následně v Pythonu "utlumíme" bílou vrstvou.
-base_style = "Vintage botanical stationery paper texture, decorative borders, elegant watercolor illustration, top view, high quality art. Theme: "
+base_style = "Vintage botanical stationery paper texture, decorative borders, elegant watercolor illustration, top view, high quality art. No text in picture. Theme: "
 
 prompts = {
     "bg_01.jpg": base_style + "Winter frost, pine cones, ice blue crystals, white snow.",

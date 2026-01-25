@@ -1,25 +1,32 @@
 import json
 import os
-from pathlib import Path
 
-def load_config():
-    config_path = Path(__file__).parent / "config.json"
-    template_path = Path(__file__).parent / "config.template.json"
-    
-    if not config_path.exists():
-        if template_path.exists():
-            print(f"Chyba: Soubor {config_path.name} nebyl nalezen. PouĹľijte {template_path.name} jako vzor.")
-        else:
-            print(f"Chyba: KonfiguraÄŤnĂ­ soubor nebyl nalezen.")
-        return {}
-        
+CONFIG_FILE = "config.json"
+
+def get_api_keys():
+    """
+    Načte oba API klíče z konfiguračního souboru.
+    Vrací slovník: {"free": "...", "paid": "..."}
+    """
+    if not os.path.exists(CONFIG_FILE):
+        print(f"❌ Chyba: Soubor {CONFIG_FILE} nenalezen.")
+        return None
+
     try:
-        with open(config_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"Chyba pĹ™i naÄŤĂ­tĂˇnĂ­ konfigurace: {e}")
-        return {}
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            config = json.load(f)
+            
+        keys = {
+            "free": config.get("API_KEY_FREE"),
+            "paid": config.get("API_KEY_PAID")
+        }
+        
+        # Fallback pro zpětnou kompatibilitu, kdyby tam byl starý klíč "API_KEY"
+        if not keys["free"] and config.get("API_KEY"):
+            keys["free"] = config.get("API_KEY")
+            
+        return keys
 
-def get_api_key():
-    config = load_config()
-    return config.get("API_KEY", "")
+    except Exception as e:
+        print(f"❌ Chyba při čtení configu: {e}")
+        return None
